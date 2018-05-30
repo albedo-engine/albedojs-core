@@ -1,0 +1,37 @@
+{
+  "name": "albedo.js",
+  "version": "0.0.1",
+  "description": "Minimal and efficient rendering library.",
+  "repository": "git@github.com:albedo-engine/albedojs.git",
+  "bugs": "https://github.com/albedo-engine/albedojs/issues",
+  "author": "David Peicho <david.peicho@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "3D",
+    "rendering",
+    "webgl"
+  ],
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "path": "^0.12.7",
+    "webpack": "^4.10.1",
+    "webpack-cli": "^2.1.4",
+    "webpack-dev-server": "^3.1.4",
+    "webpack-merge": "^4.1.2"
+  },
+  "dependencies": {
+    "gl-matrix": "^2.6.1"
+  },
+  "files": [
+    "package.json",
+    "LICENSE",
+    "README.md",
+    "dist/albedo.js",
+    "dist/albedo.min.js",
+    "src"
+  ],
+  "scripts": {
+    "dev": "NODE_ENV=development webpack-dev-server --mode development --config config/dev.config.js",
+    "build": "NODE_ENV=development webpack --mode production --config config/prod.config.js"
+  }
+}
