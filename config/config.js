@@ -1,19 +1,20 @@
-const path = require(`path`);
+import path from 'path';
 
-const ROOT = path.join(__dirname, `..`);
-
+const ROOT = path.resolve(__dirname, `..`);
 const PATH = {
-  src: path.resolve(ROOT, `src`)
-};
-const INPUT = {
-  lib: path.resolve(PATH.src, `albedo.js`)
+  SRC: `${ROOT}/src`,
+  DIST: `${ROOT}/dist`
 };
 
-console.log(PATH);
+const LIBRARY_NAME = `Albedo`;
+const INPUT = `${PATH.SRC}/albedo.js`;
+const OUTPUT = `${PATH.DIST}/albedo`;
 
-const config = {
-  entry: INPUT.lib,
-  module: {}
+export default {
+  input: INPUT,
+  output: {
+    file: OUTPUT,
+    format: `es`,
+    name: LIBRARY_NAME
+  }
 };
-
-module.exports = config;

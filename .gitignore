@@ -1,1 +1,6 @@
+dist/
+
+# Yarn & NPM
 node_modules/
+yarn-error.log
+

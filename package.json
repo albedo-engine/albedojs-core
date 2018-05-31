@@ -11,16 +11,17 @@
     "rendering",
     "webgl"
   ],
-  "devDependencies": {
-    "eslint": "^4.19.1",
-    "path": "^0.12.7",
-    "webpack": "^4.10.1",
-    "webpack-cli": "^2.1.4",
-    "webpack-dev-server": "^3.1.4",
-    "webpack-merge": "^4.1.2"
-  },
   "dependencies": {
     "gl-matrix": "^2.6.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "parallelshell": "^3.0.2",
+    "path": "^0.12.7",
+    "rollup": "^0.59.4",
+    "rollup-plugin-uglify": "^4.0.0",
+    "serve": "^7.1.5",
+    "uglify-es": "^3.3.9"
   },
   "files": [
     "package.json",
@@ -31,7 +32,9 @@
     "src"
   ],
   "scripts": {
-    "dev": "NODE_ENV=development webpack-dev-server --mode development --config config/dev.config.js",
-    "build": "NODE_ENV=development webpack --mode production --config config/prod.config.js"
+    "dev": "parallelshell \"serve --listen 8080\" \"rollup -c config/dev.config.js -w\"",
+    "build": "npm run lint && npm run test && rollup -c config/prod.config.js",
+    "lint": "eslint src",
+    "test": ""
   }
 }

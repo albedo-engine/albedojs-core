@@ -1,27 +1,11 @@
-const webpack = require(`webpack`);
-const merge = require(`webpack-merge`);
-const path = require(`path`);
+import { uglify } from 'rollup-plugin-uglify';
+import { minify } from 'uglify-es';
+import config from './config';
 
-const config = require(`./config.js`);
+// Writes the output as [name].min.js
+config.output.file += `.min.js`;
+config.plugins = [
+  uglify({}, minify)
+];
 
-const PATH = {
-  dist: path.resolve(__dirname, `dist`)
-};
-const OUTPUT = {
-  lib: `albedo.js`
-};
-
-const prodConfig = {
-  output: {
-    path: PATH.dist,
-    filename: OUTPUT.lib,
-    //publicPath: `/` + BUILD + `/`,
-    library: `Albedo`,
-    libraryTarget: `amd`
-  },
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({ minimize: true })
-  ]
-};
-
-module.exports = merge(config, prodConfig);
+export default config;
