@@ -21,6 +21,7 @@
     "rollup": "^0.59.4",
     "rollup-plugin-uglify": "^4.0.0",
     "serve": "^7.1.5",
+    "tape": "^4.9.0",
     "uglify-es": "^3.3.9"
   },
   "files": [
@@ -35,6 +36,6 @@
     "dev": "parallelshell \"serve --listen 8080\" \"rollup -c config/dev.config.js -w\"",
     "build": "npm run lint && npm run test && rollup -c config/prod.config.js",
     "lint": "eslint src",
-    "test": ""
+    "test": "tape test/index.js"
   }
 }
