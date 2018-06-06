@@ -11,13 +11,11 @@
     "rendering",
     "webgl"
   ],
-  "dependencies": {
-    "gl-matrix": "^2.6.1"
-  },
   "devDependencies": {
     "eslint": "^4.19.1",
     "parallelshell": "^3.0.2",
     "path": "^0.12.7",
+    "prettier": "^1.14.1",
     "rollup": "^0.59.4",
     "rollup-plugin-uglify": "^4.0.0",
     "serve": "^7.1.5",
