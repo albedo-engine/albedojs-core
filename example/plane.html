@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>AlbedoJS - Simple Cube</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #f0f0f0;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="canvas" style="width: 100%; height: 100%"></canvas>
+        <script type="module">
+			import * as Albedo from '../dist/albedo.js';
+			
+			const vertexShader = `#version 300 es
+
+			precision highp float;
+
+			uniform mat4 uToto;
+
+			in vec3 position;
+			layout (location = 3) in vec3 normal;
+
+			out vec4 vNormal;
+
+			void main()
+			{
+				gl_Position = vec4(position, 1.0) * uToto;
+				vNormal = vec4(normal, 1.0);
+			}
+			`;
+
+			const fragmentShader = `#version 300 es
+
+			precision highp float;
+
+			out vec4 FragColor;
+
+			void main()
+			{
+				FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+			}
+			`;
+
+			const positionAttribute = new Albedo.Attribute(new Float32Array([
+					-1.0, 1.0, 0.0,
+					1.0, 1.0, 0.0,
+					-1.0, -1.0, 0.0,
+					1.0, 1.0, 0.0,
+					1.0, -1.0, 0.0,
+					-1.0, -1.0, 0.0,
+			]));
+
+			const attributes = { position: positionAttribute };
+
+			const canvas = document.getElementById(`canvas`);
+			const renderer = new Albedo.Renderer({canvas: canvas, verbose: true});
+
+			const shader =  new Albedo.Program(vertexShader, fragmentShader);
+
+			function render() {
+				renderer.render(attributes, shader);
+				window.requestAnimationFrame(render);
+			}
+			render();
+		</script>
+	</body>
+</html>

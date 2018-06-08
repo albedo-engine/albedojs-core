@@ -17,6 +17,7 @@
     "path": "^0.12.7",
     "prettier": "^1.14.1",
     "rollup": "^0.59.4",
+    "rollup-plugin-includepaths": "^0.2.3",
     "rollup-plugin-uglify": "^4.0.0",
     "serve": "^7.1.5",
     "tape": "^4.9.0",
@@ -31,8 +32,9 @@
     "src"
   ],
   "scripts": {
-    "dev": "parallelshell \"serve --listen 8080\" \"rollup -c config/dev.config.js -w\"",
+    "dev": "parallelshell \"serve --listen 8080\" \"npm run build-dev\"",
     "build": "npm run lint && npm run test && rollup -c config/prod.config.js",
+    "build-dev": "rollup -c config/dev.config.js -w",
     "lint": "eslint src",
     "test": "tape test/index.js"
   }

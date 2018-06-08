@@ -53,6 +53,14 @@ const material = new Material(shader); // copies the uniform
 
 ## Scene Graph API
 
+### Entity - Components - Systems
+
+* We add Node in the graph, that can have components;
+* All Components have preRenderUpdate and postRenderUpdate;
+* All Systems have preRenderUpdate and postRenderUpdate;
+* The scene graph is really for rendering, components should not fit into it, expect
+needed ones, such as Transform, Material, Camera, etc...
+
 ### Traversal
 
 * Takes the closest material to a primitive for rendering. Meaning that it does not force a node to have a primitive AND a material.

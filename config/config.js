@@ -1,3 +1,4 @@
+import includePaths from 'rollup-plugin-includepaths';
 import path from 'path';
 
 const ROOT = path.resolve(__dirname, `..`);
@@ -16,5 +17,8 @@ export default {
     file: OUTPUT,
     format: `es`,
     name: LIBRARY_NAME
-  }
+  },
+  plugins: [
+    includePaths({ paths: [PATH.SRC] })
+  ]
 };
