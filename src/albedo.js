@@ -1,14 +1,5 @@
-import { Attributes } from './attributes';
-import { Buffer } from './buffer';
-
-import { Renderer } from './renderer';
-import { Program } from './program';
-import { Shader } from './shader';
+import { WebGLContext } from 'webgl-context';
 
 export {
-  Attributes,
-  Buffer,
-  Renderer,
-  Program,
-  Shader
+  WebGLContext
 };

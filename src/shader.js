@@ -1,43 +1,31 @@
 export class Shader {
 
-  constructor(sourceStr) {
-    this.source = sourceStr;
-    this._shader = null;
+  constructor(gl, source, type) {
+    this.webglObject = null;
+
+    this.source = source;
+    this.type = type;
+
+    this._gl = gl;
+
+    this._error = null;
+    this._compiled = false;
   }
 
-  compile(gl, type) {
-    if (this.ready()) return this._shader;
+  compile() {
+    const shader = this._gl.createShader(this._type);
+    this._gl.shaderSource(shader, this._source);
+    this._gl.compileShader(shader);
 
-    if (!this.source) {
-      console.warn(`Shader.compile(): ${WARN_MSG.NO_SRC}.`);
-      return null;
-    }
-
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, this.source);
-    gl.compileShader(shader);
-
-    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    const success = this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS);
     if (!success) {
-      gl.deleteShader(shader);
-      console.warn(`${gl.getShaderInfoLog(shader)}`);
+      this._error = this._gl.getShaderInfoLog(shader);
+      this._gl.deleteShader(shader);
+      return;
     }
 
-    this._shader = shader;
-    return shader;
-  }
-
-  release(gl) {
-    gl.deleteShader(this._shader);
-    this._shader = null;
-  }
-
-  ready() {
-    return !!this._shader;
+    this._compiled = true;
+    this.webglObject = shader;
   }
 
 }
-
-const WARN_MSG = {
-  NO_SRC: `provided source is null or empty`
-};
