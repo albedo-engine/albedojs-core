@@ -19,6 +19,6 @@ export default {
     name: LIBRARY_NAME
   },
   plugins: [
-    includePaths({ paths: [PATH.SRC] })
+    includePaths({ paths: [ `src` ] })
   ]
 };

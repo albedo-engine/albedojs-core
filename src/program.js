@@ -1,8 +1,8 @@
 export class Program {
 
-  constructor(gl, vertexSource, fragmentSource, uniforms) {
-    this.vertexShader = vertexSource;
-    this.fragmentShader = fragmentSource;
+  constructor(vertexSource, fragmentSource, uniforms) {
+    this.vertexSource = vertexSource;
+    this.fragmentSource = fragmentSource;
     this.uniforms = uniforms;
   }
 
