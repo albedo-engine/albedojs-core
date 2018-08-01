@@ -48,7 +48,15 @@
 			}
 			`;
 
-			const positionAttribute = new Albedo.Attribute(new Float32Array([
+			const positionAttribute = new Albedo.Attribute();
+
+			const attributes = { position: positionAttribute };
+
+			const canvas = document.getElementById(`canvas`);
+
+			const context = new Albedo.WebGLContext({canvas: canvas});
+			
+			const VBO = new Albedo.VBO(new Float32Array([
 					-1.0, 1.0, 0.0,
 					1.0, 1.0, 0.0,
 					-1.0, -1.0, 0.0,
@@ -57,15 +65,13 @@
 					-1.0, -1.0, 0.0,
 			]));
 
-			const attributes = { position: positionAttribute };
+			const vao = new Albedo.VAO();
+			const shader = new Albedo.Program(vertexShader, fragmentShader);
 
-			const canvas = document.getElementById(`canvas`);
-			const renderer = new Albedo.Renderer({canvas: canvas, verbose: true});
-
-			const shader =  new Albedo.Program(vertexShader, fragmentShader);
+			context.compile(shader);
 
 			function render() {
-				renderer.render(attributes, shader);
+				context.draw(vao, shader);
 				window.requestAnimationFrame(render);
 			}
 			render();
