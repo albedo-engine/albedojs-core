@@ -12,14 +12,18 @@
     "webgl"
   ],
   "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
     "eslint": "^4.19.1",
     "parallelshell": "^3.0.2",
     "path": "^0.12.7",
     "prettier": "^1.14.1",
     "rollup": "^0.59.4",
+    "rollup-plugin-babel": "^3.0.7",
     "rollup-plugin-includepaths": "^0.2.3",
     "rollup-plugin-uglify": "^4.0.0",
     "serve": "^7.1.5",
+    "tap-spec": "^5.0.0",
     "tape": "^4.9.0",
     "uglify-es": "^3.3.9"
   },
@@ -36,6 +40,7 @@
     "build": "npm run lint && npm run test && rollup -c config/prod.config.js",
     "build-dev": "rollup -c config/dev.config.js -w",
     "lint": "eslint src",
-    "test": "tape test/index.js"
+    "build-test": "rollup -c config/test.config.js ",
+    "test": "npm run build-test && tape dist/albedo.testlib.js | tap-spec"
   }
 }

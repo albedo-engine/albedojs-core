@@ -1,5 +1,6 @@
 import { Cache } from 'utils/cache';
 import { compileShader, getFormattedCode, linkProgram } from 'webgl/webgl-shader';
+import { WebGLProgramData } from 'webgl/webgl-program-data';
 
 export class WebGLContext {
 
@@ -7,7 +8,22 @@ export class WebGLContext {
     if (!options.canvas)
       throw new Error(`Renderer.ctor(): ${ERROR.MISSING_CANVAS}`);
 
-    this._gl = options.canvas.getContext(`webgl2`);
+    const contextOptions = {
+      alpha: false,
+      depth: true,
+      stencil: true,
+      antialias: false,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+      powerPreference: `default`
+    };
+
+    this._gl = options.canvas.getContext(`webgl2`, contextOptions);
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    options.canvas.style.width = `${options.canvas.clientWidth}px`;
+    options.canvas.style.height = `${options.canvas.clientHeight}px`;
+    options.canvas.width = options.canvas.clientWidth * devicePixelRatio;
+    options.canvas.height = options.canvas.clientHeight * devicePixelRatio;
 
     this._verbose = {};
     this._verbose.name = options.name || DEFAULT_NAME;
@@ -16,7 +32,7 @@ export class WebGLContext {
     this._VBOs = new Cache();
     this._VAOs = new Cache();
     this._UBOs = new Cache();
-    this._programs = new Cache();
+    this._programs = new Cache(WebGLProgramData);
   }
 
   compile(program) {
@@ -44,13 +60,14 @@ export class WebGLContext {
 
     if (failed) return false;
 
-    const webGLObject = linkProgram(vertexShader, fragmentShader, this._gl);
-    if (!(webGLObject instanceof WebGLProgram)) {
+    const webglObject = linkProgram(vertexShader, fragmentShader, this._gl);
+    if (!(webglObject instanceof WebGLProgram)) {
       console.warn(`${WARN.PROGRAM_LINK}`);
       return false;
     }
 
-    programData.webGLObject = webGLObject;
+    programData.webglObject = webglObject;
+    programData.init(this._gl);
     return true;
   }
 
@@ -58,31 +75,31 @@ export class WebGLContext {
     const vboData = this._VBOs.get(vbo);
     if (vboData.failed) return false;
 
-    if (vboData.webGLObject) return true;
+    if (vboData.webglObject) return true;
 
     const drawType = vbo.dynamic ? this._gl.DYNAMC_DRAW : this._gl.STATIC_DRAW;
 
-    const webGLObject = this._gl.createBuffer();
-    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, webGLObject);
+    const webglObject = this._gl.createBuffer();
+    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, webglObject);
     this._gl.bufferData(this._gl.ARRAY_BUFFER, vbo.data, drawType);
 
-    vboData.webGLObject = webGLObject;
+    vboData.webglObject = webglObject;
     return true;
   }
 
   updateVAO(vao) {
     const vaoData = this._VAOs.get(vao);
-    if (vaoData.webGLObject) return true;
+    if (vaoData.webglObject) return true;
 
-    const webGLObject = this._gl.createVertexArray();
-    this._gl.bindVertexArray(webGLObject);
+    const webglObject = this._gl.createVertexArray();
+    this._gl.bindVertexArray(webglObject);
 
     for (let attrib of vao.vertexAttributes) {
       const vbo = attrib.vbo;
       const vboData = this._VBOs.get(vbo);
-      if (!vboData.webGLObject) this.updateVBO(vbo);
+      if (!vboData.webglObject) this.updateVBO(vbo);
 
-      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vboData.webGLObject);
+      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vboData.webglObject);
       this._gl.enableVertexAttribArray(attrib.location);
       this._gl.vertexAttribPointer(attrib.location, vbo.components, vbo.type,
         attrib.normalized, vbo.stride, attrib.offset
@@ -90,11 +107,11 @@ export class WebGLContext {
     }
     this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
 
-    vaoData.webGLObject = webGLObject;
+    vaoData.webglObject = webglObject;
     return true;
   }
 
-  updateUBO(ubo) {
+  /*updateUBO(ubo) {
     const uboData = this._UBOs.get(ubo);
 
     if (uboData.webGLObject) {
@@ -112,27 +129,27 @@ export class WebGLContext {
     this._gl.bufferData(this._gl.UNIFORM_BUFFER, ubo.data, updateType);
 
     uboData.webGLObject = webGLObject;
-  }
+  }*/
 
   draw(program, vao) {
     if (!program || !vao) return;
 
     const programData = this._programs.get(program);
-    if (!programData.webGLObject && !programData.failed) this.compile(program);
     if (programData.failed) return;
+    if (!programData.webglObject) this.compile(program);
 
     const vaoData = this._VAOs.get(vao);
     if (vaoData.failed) return;
-
-    if (!vaoData.webGLObject) this.updateVAO(vao);
+    if (!vaoData.webglObject) this.updateVAO(vao);
 
     this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
 
     this._gl.clearColor(0, 0, 0, 0);
     this._gl.clear(this._gl.COLOR_BUFFER_BIT);
 
-    this._gl.useProgram(programData.webGLObject);
-    this._gl.bindVertexArray(vaoData.webGLObject);
+    programData.use(this._gl);
+    programData.sendUniforms(program.uniforms, this._gl);
+    programData.bindVAO(vaoData.webglObject, this._gl);
 
     this._gl.drawArrays(this._gl.TRIANGLES, 0, vao.count);
   }
