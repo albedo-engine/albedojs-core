@@ -96,7 +96,22 @@ export class WebGLContext {
 
   updateUBO(ubo) {
     const uboData = this._UBOs.get(ubo);
-    if (uboData.webGLObject) return true;
+
+    if (uboData.webGLObject) {
+      this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboData.webGLObject);
+      this._gl.bufferSubData(
+        this._gl.UNIFORM_BUFFER, 0, ubo.data, 0, uboData.length
+      );
+      return;
+    }
+
+    const updateType = ubo.dynamic ? this._gl.DYNAMC_DRAW : this._gl.STATIC_DRAW;
+    const webGLObject = this._gl.createBuffer();
+
+    this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, webGLObject);
+    this._gl.bufferData(this._gl.UNIFORM_BUFFER, ubo.data, updateType);
+
+    uboData.webGLObject = webGLObject;
   }
 
   draw(program, vao) {

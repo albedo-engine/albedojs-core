@@ -3,6 +3,15 @@
 * [ ] Add basic structure
 * [ ] Add test suite
 
+## General
+
+* [ ] Add error checking
+
+## UBO
+
+* [ ] Improve bufferSubData
+* [ ] Add helper to simplfy data writing to buffer
+
 ## Programs
 
 * [ ] Sends all type of uniforms

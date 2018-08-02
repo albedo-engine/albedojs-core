@@ -1,7 +1,8 @@
 export class UBO {
 
-  constructor() {
-
+  constructor(data, dynamic) {
+    this.data = data;
+    this.dynamic = dynamic;
   }
 
 }
