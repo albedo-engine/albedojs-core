@@ -18,6 +18,14 @@ export const TYPES = {
   FLOAT: 0
 };
 
+export const FORMAT = {
+
+};
+
+export const INTERNAL_FORMAT = {
+
+};
+
 export const GLSLTYPES = {
   BOOL: 0,
   BOOL_VEC2: 0,
@@ -72,4 +80,6 @@ const gl = WebGL2RenderingContext;
 if (gl) {
   fillConstantsMap(TYPES);
   fillConstantsMap(GLSLTYPES);
+  fillConstantsMap(FORMAT);
+  fillConstantsMap(INTERNAL_FORMAT);
 }
