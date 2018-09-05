@@ -27,6 +27,7 @@ export class WebGLUniformsData {
 
 }
 
+// TODO: optimize this.
 const tokenize = (name) => {
   const tokens = [];
   let i = 0;

@@ -56,7 +56,8 @@
 
 			void main()
 			{
-				FragColor = vec4(floats[0], uData[2].alpha, 0.0, 1.0);
+				FragColor = vec4(floats[0], floats[1], floats[2], 1.0);
+				//FragColor = vec4(floats[0], uData[2].alpha, 0.0, 1.0);
 				//FragColor = vec4(color.x, color.y, color.z, 1.0);
 			}
 			`;
@@ -66,7 +67,7 @@
 
     const program = new Albedo.Program(vertexShader, fragmentShader);
     program.uniforms.color = [1.0, 0.5, 0.5];
-    program.uniforms.floats = [1.0, 0.0, 0.0];
+    program.uniforms.floats = [1.0, 0.0, 0.0, 1.0];
     program.uniforms.uData = [];
     program.uniforms.uData[0] = {};
     program.uniforms.uData[2] = {};
