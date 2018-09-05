@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>AlbedoJS - Simple Cube</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    body {
+      font-family: Monospace;
+      background-color: #f0f0f0;
+      margin: 0px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" style="width: 100%; height: 100%"></canvas>
+  <script type="module">
+    import * as Albedo from '../dist/albedo.js';
+
+    const vertexShader = `#version 300 es
+
+			precision highp float;
+
+      struct Test {
+        mat4x4 worldMatrix;
+        float alpha;
+      };
+      uniform Test uData[4];
+
+			in vec3 position;
+
+			void main()
+			{
+				gl_Position = uData[0].worldMatrix * vec4(position, 1.0);
+			}
+			`;
+
+    const fragmentShader = `#version 300 es
+
+			precision highp float;
+
+      out vec4 FragColor;
+      
+      struct Test {
+        mat4x4 worldMatrix;
+        float alpha;
+      };
+      
+      uniform Test uData[4];
+      uniform float floats[4];
+
+      //uniform vec3 color;
+
+			void main()
+			{
+				FragColor = vec4(floats[0], floats[1], floats[2], 1.0);
+				//FragColor = vec4(floats[0], uData[2].alpha, 0.0, 1.0);
+				//FragColor = vec4(color.x, color.y, color.z, 1.0);
+			}
+			`;
+
+    const canvas = document.getElementById(`canvas`);
+    const context = new Albedo.WebGLContext({ canvas: canvas });
+
+    const program = new Albedo.Program(vertexShader, fragmentShader);
+    program.uniforms.color = [1.0, 0.5, 0.5];
+    program.uniforms.floats = [1.0, 0.0, 0.0, 1.0];
+    program.uniforms.uData = [];
+    program.uniforms.uData[0] = {};
+    program.uniforms.uData[2] = {};
+    program.uniforms.uData[2].alpha = 0.5;
+    program.uniforms.uData[0].worldMatrix = new Float32Array([
+      0.3, 0.0, 0.0, 0.0,
+      0.0, 0.8, 0.0, 0.0,
+      0.0, 0.0, 0.8, 0.0,
+      0.0, 0.0, 0.0, 1.0,
+    ]);
+    context.compile(program);
+
+    const vbo = new Albedo.VBO(new Float32Array([
+      -1.0, 1.0, 0.0,
+      -1.0, -1.0, 0.0,
+      1.0, -1.0, 0.0,
+      -1.0, 1.0, 0.0,
+      1.0, -1.0, 0.0,
+      1.0, 1.0, 0.0,
+    ]));
+    const vao = new Albedo.VAO().vertexAttrib({ vbo: vbo });
+
+    function render() {
+      context.draw(program, vao);
+      window.requestAnimationFrame(render);
+    }
+    render();
+  </script>
+</body>
+
+</html>
