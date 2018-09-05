@@ -7,6 +7,10 @@
 
 * [ ] Add error checking
 
+## Texture
+
+* [ ] Add mipmapping
+
 ## UBO
 
 * [ ] Improve bufferSubData
