@@ -10,6 +10,8 @@
 ## Texture
 
 * [ ] Add mipmapping
+* [ ] Add texNSubImage
+* [ ] Add dirty
 
 ## UBO
 

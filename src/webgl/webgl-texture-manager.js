@@ -25,14 +25,16 @@ export class WebGLTextureManager {
     if (!textureData.WebGLObject) this._upload(texture, gl);
 
     gl.activeTexture(gl.TEXTURE0 + unit);
-    gl.bindTexture(gl.TEXTURE_2D, textureData.WebGLObject);
+    gl.bindTexture(textureData.target, textureData.WebGLObject);
   }
 
   setTextureParams(texture, WebGLType, gl) {
-    gl.texParameteri(WebGLType, gl.TEXTURE_WRAP_S, texture.wrap.s);
-    gl.texParameteri(WebGLType, gl.TEXTURE_WRAP_T, texture.wrap.t);
     gl.texParameteri(WebGLType, gl.TEXTURE_MIN_FILTER, texture.filtering.min);
     gl.texParameteri(WebGLType, gl.TEXTURE_MAG_FILTER, texture.filtering.mag);
+    gl.texParameteri(WebGLType, gl.TEXTURE_WRAP_S, texture.wrap.s);
+    gl.texParameteri(WebGLType, gl.TEXTURE_WRAP_T, texture.wrap.t);
+    if (WebGLType === gl.TEXTURE_3D || WebGLType === gl.TEXTURE_CUBE_MAP)
+      gl.texParameteri(WebGLType, gl.TEXTURE_WRAP_R, texture.wrap.r);
   }
 
   _upload(texture, gl) {
@@ -40,23 +42,22 @@ export class WebGLTextureManager {
     textureData.WebGLObject = gl.createTexture();
     textureData.target = detectTarget(texture, gl);
 
-    const target = textureData.target;
     const type = texture.type;
     const format = texture.format;
     const internalFormat = texture.internalFormat;
 
-    gl.bindTexture(target, textureData.WebGLObject);
-    this.setTextureParams(texture, target, gl);
+    gl.bindTexture(textureData.target, textureData.WebGLObject);
+    this.setTextureParams(texture, textureData.target, gl);
 
     switch (textureData.target) {
     case gl.TEXTURE_2D:
       if (texture.htmlImage_)
-        this._uploadImage(texture.data, target, type, internalFormat, format, gl);
+        this._uploadImage(texture.data, type, internalFormat, format, gl);
       else
-        this._uploadTexture();
+        this.uploadTexture();
       break;
     case gl.TEXTURE_3D:
-      this._uploadTexture3D();
+      this.uploadTexture3D(texture.data, texture.width, texture.height, texture.depth, type, internalFormat, format, gl);
       break;
     case gl.TEXTURE_CUBE_MAP:
       this._uploadCubemap();
@@ -74,12 +75,12 @@ export class WebGLTextureManager {
 
   }
 
-  _uploadTexture3D(data, width, height, depth, type, internalFormat, format) {
-
+  uploadTexture3D(data, width, height, depth, type, internalFormat, format, gl) {
+    gl.texImage3D(gl.TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, type, data);
   }
 
-  _uploadTexture(data, target, width, height, type, internalFormat, format) {
-    //gl.texImage2D(gl.TEXTURE_2D, 0, texture.internalFormat, texture.format, texture.type, texture.data);
+  uploadTexture(data, width, height, type, internalFormat, format) {
+    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, format, type, data);
   }
 
   _uploadImage(image, target, type, internalFormat, format, gl) {

@@ -24,4 +24,9 @@ export class AbstractTexture {
     this.dirty = true;
   }
 
+  // TODO!
+  clone() {
+    throw new Error(`Not implemented yet.`);
+  }
+
 }

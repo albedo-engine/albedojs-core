@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>AlbedoJS - Simple Cube</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    body {
+      font-family: Monospace;
+      background-color: #f0f0f0;
+      margin: 0px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" style="width: 100%; height: 100%"></canvas>
+  <script type="module">
+    import * as Albedo from '../dist/albedo.js';
+
+    const vertexShader = `#version 300 es
+
+			precision highp float;
+
+      in vec3 position;
+      in vec2 uv;
+
+      out vec2 vUv;
+
+			void main()
+			{
+        vUv = uv;
+				gl_Position = vec4(position, 1.0);
+			}
+			`;
+
+    const fragmentShader = `#version 300 es
+
+			precision highp float;
+			precision highp sampler3D;
+
+      in vec2 vUv;
+      out vec4 FragColor;
+      
+      uniform sampler3D uTexture;
+      uniform float uSlice;
+
+			void main()
+			{
+        vec3 uv = vec3(vUv, uSlice);
+        float val = texture(uTexture, uv).r;
+				FragColor = vec4(vec3(val), 1.0);
+			}
+			`;
+
+    const canvas = document.getElementById(`canvas`);
+    const context = new Albedo.WebGLContext({ canvas: canvas });
+
+    const program = new Albedo.Program(vertexShader, fragmentShader);
+
+    const verticesVBO = new Albedo.VBO(new Float32Array([
+      -1.0, 1.0, 0.0,
+      -1.0, -1.0, 0.0,
+      1.0, -1.0, 0.0,
+      -1.0, 1.0, 0.0,
+      1.0, -1.0, 0.0,
+      1.0, 1.0, 0.0,
+    ]));
+    const uvVBO = new Albedo.VBO(new Float32Array([
+      0.0, 0.0,
+      0.0, 1.0,
+      1.0, 1.0,
+      0.0, 0.0,
+      1.0, 1.0,
+      1.0, 0.0,
+    ]));
+    uvVBO.components = 2;
+
+    const vao = new Albedo.VAO()
+      .vertexAttrib({ vbo: verticesVBO })
+      .vertexAttrib({ vbo: uvVBO, location: 1 });
+
+    let volumeData = null;
+
+    var req = new XMLHttpRequest();
+    req.open("GET", "assets/textures/volume.raw", true);
+    req.responseType = "arraybuffer";
+    req.onload = (oEvent) => {
+      if (!req.response) return;      
+      const byteArray = new Int16Array(req.response);
+      volumeData = new Float32Array(byteArray.length);
+
+      let min = Number.POSITIVE_INFINITY;
+      let max = Number.NEGATIVE_INFINITY;
+      for (var i = 0; i < byteArray.byteLength; ++i) {
+        const v = byteArray[i];
+        min = (min > v) ? v : min;
+        max = (max < v) ? v : max;
+      }
+
+      for (var i = 0; i < byteArray.byteLength; ++i) {
+        //volumeData[i] = byteArray[i] / 128;
+        volumeData[i] = (byteArray[i] - min) / (max - min);
+      }
+      init();
+    };
+    req.send(null);
+
+    function init() {
+      program.uniforms.uTexture = new Albedo.Texture3D({
+        data: volumeData,
+        width: 256,
+        height: 256,
+        depth: 109,
+      });
+      program.uniforms.uTexture.type = Albedo.CONSTANTS.TYPES.FLOAT;
+      program.uniforms.uTexture.internalFormat = Albedo.CONSTANTS.INTERNAL_FORMAT.R16F;
+      program.uniforms.uTexture.format = Albedo.CONSTANTS.FORMAT.RED;
+      
+      program.uniforms.uSlice = 0.001;
+      render();
+    }
+
+    function render() {
+      context.draw(program, vao);
+      window.requestAnimationFrame(render);
+
+      program.uniforms.uSlice += 0.001;
+    }
+  </script>
+</body>
+
+</html>
