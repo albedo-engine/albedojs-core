@@ -1,9 +1,5 @@
 import { AbstractTexture } from './abstract-texture';
-
-const JSPrivateAttributes = new WeakMap();
-const self = (key) => {
-  return JSPrivateAttributes.get(key);
-};
+import { TextureData } from './texture-data';
 
 export class Texture2D extends AbstractTexture {
 
@@ -12,43 +8,20 @@ export class Texture2D extends AbstractTexture {
   }
 
   constructor(definition) {
-    // TODO: support instanciation via data only.
-    const def = Object.assign({
-      width: null,
-      height: null,
-      data: null
-    }, definition);
-
+    const def = definition || {};
     super(def);
 
-    this.width = def.width;
-    this.height = def.height;
-    
-    JSPrivateAttributes.set(this, {
-      data: null
-    });
+    this.data = null;
 
-    this.htmlImage_ = false;
-
-    this.update(def.data);
-  }
-
-  update(data) {
-    if (data instanceof Image) {
-      this.width = data.width;
-      this.height = data.height;
-      this.htmlImage_ = true;
-    }
-    self(this).data = data || null;
+    if (def.buffer || def.width || def.height)
+      this.data = new TextureData(def);
+    else if (definition instanceof TextureData)
+      this.data = definition;
   }
 
   // TODO!
   clone() {
     throw new Error(`Not implemented yet.`);
-  }
-
-  get data() {
-    return self(this).data;
   }
 
 }

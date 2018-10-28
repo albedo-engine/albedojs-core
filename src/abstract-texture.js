@@ -6,19 +6,15 @@ export class AbstractTexture {
     return true;
   }
 
-  constructor(options) {
-    this.type = options.type || CONSTANTS.TYPES.UNSIGNED_BYTE;
-    this.format = options.format || CONSTANTS.FORMAT.RGB;
-    this.internalFormat = options.internalFormat || CONSTANTS.INTERNAL_FORMAT.RGB;
+  constructor(definition) {
+    const def = Object.assign(DEFAULT_DEFINITION, definition);
 
-    this.wrap = {
-      s: options.wrapS || CONSTANTS.WRAPPING.CLAMP_TO_EDGE,
-      t: options.wrapT || CONSTANTS.WRAPPING.CLAMP_TO_EDGE
-    };
-    this.filtering = {
-      mag: options.magFiltering || CONSTANTS.FILTERING.LINEAR,
-      min: options.minFiltering || CONSTANTS.FILTERING.LINEAR
-    };
+    this.type = def.type;
+    this.format = def.format;
+    this.internalFormat = def.internalFormat;
+
+    this.wrap = { s: def.wrapS, t: def.wrapT };
+    this.filtering = { mag: def.magFiltering, min: def.minFiltering };
 
     this.useMipmaps = false;
     this.dirty = true;
@@ -30,3 +26,13 @@ export class AbstractTexture {
   }
 
 }
+
+const DEFAULT_DEFINITION = {
+  type: CONSTANTS.TYPES.UNSIGNED_BYTE,
+  format: CONSTANTS.FORMAT.RGB,
+  internalFormat: CONSTANTS.INTERNAL_FORMAT.RGB,
+  wrapS: CONSTANTS.WRAPPING.CLAMP_TO_EDGE,
+  wrapT: CONSTANTS.WRAPPING.CLAMP_TO_EDGE,
+  magFiltering: CONSTANTS.FILTERING.LINEAR,
+  minFiltering: CONSTANTS.FILTERING.LINEAR
+};

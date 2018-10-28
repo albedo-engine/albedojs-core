@@ -86,7 +86,7 @@
 
     const image = new Image();
     image.onload = function(data) {
-      program.uniforms.uTexture = new Albedo.Texture2D({data: image});
+      program.uniforms.uTexture = new Albedo.Texture2D({buffer: image});
       init();
     };
     image.src = './assets/cat.jpg';

@@ -89,7 +89,9 @@
     req.responseType = "arraybuffer";
     req.onload = (oEvent) => {
       if (!req.response) return;      
-      const byteArray = new Int16Array(req.response);
+      let byteArray = new Int8Array(req.response);
+      byteArray.reverse();
+      byteArray = new Int16Array(byteArray);
       volumeData = new Float32Array(byteArray.length);
 
       let min = Number.POSITIVE_INFINITY;
@@ -101,7 +103,6 @@
       }
 
       for (var i = 0; i < byteArray.byteLength; ++i) {
-        //volumeData[i] = byteArray[i] / 128;
         volumeData[i] = (byteArray[i] - min) / (max - min);
       }
       init();

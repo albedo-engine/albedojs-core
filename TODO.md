@@ -13,6 +13,8 @@
 * [ ] Add texNSubImage
 * [ ] Add dirty
 
+* [ ] Texture3D : find CT scan sample
+
 ## UBO
 
 * [ ] Improve bufferSubData

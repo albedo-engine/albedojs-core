@@ -1,11 +1,9 @@
 import * as CONSTANTS from './constants';
 import { AbstractTexture } from './abstract-texture';
-import { TextureData } from './texture-data';
 
+export class TextureCube extends AbstractTexture {
 
-export class Texture3D extends AbstractTexture {
-
-  static get isTexture3D() {
+  static get isTextureCube() {
     return true;
   }
 
@@ -14,14 +12,8 @@ export class Texture3D extends AbstractTexture {
     const def = Object.assign(DEFAULT_DEFINITION, definition);
     super(def);
 
+    this.faces = def.faces;
     this.wrapR = def.wrapR;
-
-    this.data = null;
-
-    if (def.buffer || def.width || def.height || def.depth)
-      this.data = new TextureData(def);
-    else if (definition instanceof TextureData)
-      this.data = definition;
   }
 
   // TODO!
@@ -32,5 +24,6 @@ export class Texture3D extends AbstractTexture {
 }
 
 const DEFAULT_DEFINITION = {
+  faces: null,
   wrapR: CONSTANTS.WRAPPING.CLAMP_TO_EDGE
 };
