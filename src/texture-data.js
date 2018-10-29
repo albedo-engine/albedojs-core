@@ -1,21 +1,21 @@
 const JSPrivateAttributes = new WeakMap();
-const self = (key) => { return JSPrivateAttributes.get(key); };
+const self = (key) => {
+  return JSPrivateAttributes.get(key);
+};
 
 export class TextureData {
 
-  constructor(definition) {
-    const def = Object.assign(DEFAULT_DEFINITION, definition);
+  constructor(buffer, width, height, depth) {
 
     JSPrivateAttributes.set(this, {
-      buffer: def.buffer,
-      width: def.width,
-      height: def.height,
-      depth: def.depth,
+      buffer: buffer || null,
+      width: width || 0,
+      height: height || 0,
+      depth: depth || 1
     });
 
     self(this).isHTMLImage = false;
 
-    const buffer = self(this).buffer;
     if (buffer instanceof Image) {
       self(this).width = buffer.width;
       self(this).height = buffer.height;
@@ -44,10 +44,3 @@ export class TextureData {
   }
 
 }
-
-const DEFAULT_DEFINITION = {
-  buffer: null,
-  width: null,
-  height: null,
-  depth: 1,
-};

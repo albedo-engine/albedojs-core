@@ -4,6 +4,7 @@ import { WebGLContext } from 'webgl-context';
 import { Program } from 'program';
 import { Texture2D } from 'texture-2D';
 import { Texture3D } from 'texture-3D';
+import { TextureCube } from 'texture-cube';
 import { VAO } from 'vao';
 import { VBO } from 'vbo';
 
@@ -11,9 +12,9 @@ export {
   Program,
   Texture2D,
   Texture3D,
+  TextureCube,
   VAO,
   VBO,
   WebGLContext,
-
   CONSTANTS
 };

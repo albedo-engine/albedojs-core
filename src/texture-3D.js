@@ -2,6 +2,8 @@ import * as CONSTANTS from './constants';
 import { AbstractTexture } from './abstract-texture';
 import { TextureData } from './texture-data';
 
+const JSPrivateAttributes = new WeakMap();
+const self = (key) => { return JSPrivateAttributes.get(key); };
 
 export class Texture3D extends AbstractTexture {
 
@@ -10,18 +12,21 @@ export class Texture3D extends AbstractTexture {
   }
 
   constructor(definition) {
-    // TODO: support instanciation via data only.
     const def = Object.assign(DEFAULT_DEFINITION, definition);
     super(def);
 
-    this.wrapR = def.wrapR;
+    this.wrap.r = def.wrapR;
 
-    this.data = null;
+    JSPrivateAttributes.set(this, {
+      data: null
+    });
 
-    if (def.buffer || def.width || def.height || def.depth)
-      this.data = new TextureData(def);
-    else if (definition instanceof TextureData)
-      this.data = definition;
+    this.init(def.buffer, def.width, def.height, def.depth);
+  }
+
+  init(buffer, width, height, depth) {
+    self(this).data = new TextureData(buffer, width, height, depth);
+    this.dirty = true;
   }
 
   // TODO!

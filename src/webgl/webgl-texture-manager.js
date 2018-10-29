@@ -4,7 +4,7 @@ const detectTarget = (texture, gl) => {
   const ctor = texture.constructor;
   if (ctor.isTexture2D) return gl.TEXTURE_2D;
   else if (ctor.isTexture3D) return gl.TEXTURE_3D;
-  else if (ctor.isCubemap) return gl.TEXTURE_CUBE_MAP;
+  else if (ctor.isTextureCube) return gl.TEXTURE_CUBE_MAP;
   return null;
 };
 
@@ -54,35 +54,40 @@ export class WebGLTextureManager {
 
     switch (target) {
     case gl.TEXTURE_2D:
-      if (texture.data.isHTMLImage)
-        this.uploadImage(texture.data.buffer, target, type, internalFormat, format, gl);
-      else
-        this.uploadTexture();
+      this.uploadTexture2D(texture.data.buffer, target, internalFormat, format, type, gl);
       break;
     case gl.TEXTURE_3D:
-      this.uploadTexture3D(texture.data, texture.width, texture.height, texture.depth, type, internalFormat, format, gl);
+      //this.uploadTexture3D(texture.data, texture.width, texture.height, texture.depth, type, internalFormat, format, gl);
       break;
     case gl.TEXTURE_CUBE_MAP:
-      this._uploadCubemap();
+      this.uploadCubemap(texture.data, internalFormat, format, type, gl);
       break;
     }
 
   }
 
-  _uploadCubemap() {
-
+  uploadTexture2D(texData, target, internalFormat, format, type, gl) {
+    const buffer = texData.buffer;
+    if (texData.isHTMLImage) {
+      gl.texImage2D(target, 0, internalFormat, format, type, buffer);
+    } else {
+      gl.texImage2D(target, 0, internalFormat, texData.width, texData.height, format, type, buffer);
+    }
   }
 
   uploadTexture3D(data, width, height, depth, type, internalFormat, format, gl) {
     gl.texImage3D(gl.TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, type, data);
   }
 
-  uploadTexture(data, width, height, type, internalFormat, format) {
-    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, format, type, data);
-  }
-
   uploadImage(image, target, type, internalFormat, format, gl) {
     gl.texImage2D(target, 0, internalFormat, format, type, image);
+  }
+
+  uploadCubemap(faces, internalFormat, format, type, gl) {
+    for (let i = 0; i < 6; ++i) {
+      const target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
+      this.uploadTexture2D(faces[i], target, internalFormat, format, type, gl);
+    }
   }
 
   reset() {

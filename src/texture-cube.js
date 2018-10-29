@@ -1,5 +1,11 @@
 import * as CONSTANTS from './constants';
 import { AbstractTexture } from './abstract-texture';
+import { TextureData } from './texture-data';
+
+const JSPrivateAttributes = new WeakMap();
+const self = (key) => {
+  return JSPrivateAttributes.get(key);
+};
 
 export class TextureCube extends AbstractTexture {
 
@@ -12,13 +18,31 @@ export class TextureCube extends AbstractTexture {
     const def = Object.assign(DEFAULT_DEFINITION, definition);
     super(def);
 
-    this.faces = def.faces;
-    this.wrapR = def.wrapR;
+    this.wrap.r = def.wrapR;
+
+    JSPrivateAttributes.set(this, {
+      data: new Array(6)
+    });
+
+    this.init(def.faces, def.width, def.height);
+  }
+
+  init(faces, width, height) {
+    // TODO: should we check for errors?
+    const data = self(this).data;
+    for (let i = 0; i < faces.length; ++i) {
+      data[i] = new TextureData(faces[i], width, height);
+    }
   }
 
   // TODO!
   clone() {
     throw new Error(`Not implemented yet.`);
+  }
+
+  // TODO: is data a good name? `faces` makes more sense maybe.
+  get data() {
+    return self(this).data;
   }
 
 }

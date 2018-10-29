@@ -5,7 +5,7 @@ import { WebGLTextureManager } from 'webgl/webgl-texture-manager';
 
 const JSPrivateAttributes = new WeakMap();
 const self = (key) => {
-  return JSPrivateAttributes.get(key);
+return JSPrivateAttributes.get(key);
 };
 
 export class WebGLContext {
