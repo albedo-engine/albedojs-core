@@ -1,5 +1,11 @@
 /* eslint camelcase: 0 */
 
+export const TARGETS = {
+  TEXTURE_2D: 0,
+  TEXTURE_3D: 0,
+  TEXTURE_CUBE_MAP: 0
+};
+
 export const TYPES = {
   BYTE: 0,
   UNSIGNED_BYTE: 0,
@@ -132,6 +138,7 @@ const fillConstantsMap = (map) => {
 
 const gl = WebGL2RenderingContext;
 if (gl) {
+  fillConstantsMap(TARGETS);
   fillConstantsMap(TYPES);
   fillConstantsMap(GLSLTYPES);
   fillConstantsMap(FORMAT);

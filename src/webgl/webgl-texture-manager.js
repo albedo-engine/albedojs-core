@@ -1,3 +1,6 @@
+import * as CONSTANTS from '../constants';
+const Targets = CONSTANTS.TARGETS;
+
 import { Cache } from 'utils/cache';
 
 const detectTarget = (texture, gl) => {
@@ -10,12 +13,22 @@ const detectTarget = (texture, gl) => {
 
 export class WebGLTextureManager {
 
-  constructor(options) {
+  constructor() {
     this.unit_ = 0;
     this.textureCache_ = new Cache();
+
+    this.TARGET_TO_GL_UPLOAD = {};
+    this.TARGET_TO_GL_UPLOAD[Targets.TEXTURE_2D] = this.uploadTexture2D;
+    this.TARGET_TO_GL_UPLOAD[Targets.TEXTURE_3D] = this.uploadTexture3D;
+    this.TARGET_TO_GL_UPLOAD[Targets.TEXTURE_CUBE_MAP] = this.uploadTextureCube;
+
+    this.TARGET_TO_GL_UPDATE = {};
+    this.TARGET_TO_GL_UPDATE[Targets.TEXTURE_2D] = this.updateGPUTexture2D;
+    this.TARGET_TO_GL_UPDATE[Targets.TEXTURE_3D] = this.updateGPUTexture3D;
+    this.TARGET_TO_GL_UPDATE[Targets.TEXTURE_CUBE_MAP] = this.updateGPUTextureCube;
   }
 
-  requestTextureUnit(gl) {
+  requestTextureUnit() {
     return this.unit_++;
   }
 
@@ -23,11 +36,21 @@ export class WebGLTextureManager {
     if (!texture.data) return;
 
     const textureData = this.textureCache_.get(texture);
-    // This texture has not been uploaded yet.
-    if (!textureData.WebGLObject) this._upload(texture, gl);
+
+    if (!textureData.WebGLObject) {
+      // This texture has not been created yet on the GPU.
+      this.upload(texture, gl);
+      texture.dirty = false;
+    } else if (texture.dirty) {
+      // This texture is already on the GPU but dirty. Updates its content.
+      this.updateGPUTexture(texture, gl);
+      texture.dirty = false;
+    } else {
+      // Texture is all set. We only need to bind it.
+      gl.bindTexture(textureData.target, textureData.WebGLObject);
+    }
 
     gl.activeTexture(gl.TEXTURE0 + unit);
-    gl.bindTexture(textureData.target, textureData.WebGLObject);
   }
 
   setTextureParams(target, texture, gl) {
@@ -39,7 +62,7 @@ export class WebGLTextureManager {
       gl.texParameteri(target, gl.TEXTURE_WRAP_R, texture.wrap.r);
   }
 
-  _upload(texture, gl) {
+  upload(texture, gl) {
     const textureData = this.textureCache_.get(texture);
     textureData.WebGLObject = gl.createTexture();
     textureData.target = detectTarget(texture, gl);
@@ -52,41 +75,70 @@ export class WebGLTextureManager {
     gl.bindTexture(target, textureData.WebGLObject);
     this.setTextureParams(target, texture, gl);
 
-    switch (target) {
-    case gl.TEXTURE_2D:
-      this.uploadTexture2D(texture.data.buffer, target, internalFormat, format, type, gl);
-      break;
-    case gl.TEXTURE_3D:
-      //this.uploadTexture3D(texture.data, texture.width, texture.height, texture.depth, type, internalFormat, format, gl);
-      break;
-    case gl.TEXTURE_CUBE_MAP:
-      this.uploadCubemap(texture.data, internalFormat, format, type, gl);
-      break;
-    }
-
+    const glUploadFunc = this.TARGET_TO_GL_UPLOAD[target];
+    glUploadFunc(texture.data, target, internalFormat, format, type, gl);
   }
 
   uploadTexture2D(texData, target, internalFormat, format, type, gl) {
-    const buffer = texData.buffer;
     if (texData.isHTMLImage) {
-      gl.texImage2D(target, 0, internalFormat, format, type, buffer);
+      gl.texImage2D(target, 0, internalFormat, format, type, texData.buffer);
     } else {
-      gl.texImage2D(target, 0, internalFormat, texData.width, texData.height, format, type, buffer);
+      gl.texImage2D(target, 0, internalFormat, texData.width, texData.height, format, type, texData.buffer);
     }
   }
 
-  uploadTexture3D(data, width, height, depth, type, internalFormat, format, gl) {
-    gl.texImage3D(gl.TEXTURE_3D, 0, internalFormat, width, height, depth, 0, format, type, data);
+  uploadTexture3D(texData, target, internalFormat, format, type, gl) {
+    const buffer = texData.buffer;
+    gl.texImage3D(target, 0, internalFormat, texData.width, texData.height, texData.depth, 0, format, type, buffer);
   }
 
-  uploadImage(image, target, type, internalFormat, format, gl) {
-    gl.texImage2D(target, 0, internalFormat, format, type, image);
-  }
-
-  uploadCubemap(faces, internalFormat, format, type, gl) {
+  uploadTextureCube(faces, _, internalFormat, format, type, gl) {
     for (let i = 0; i < 6; ++i) {
       const target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
       this.uploadTexture2D(faces[i], target, internalFormat, format, type, gl);
+    }
+  }
+
+  updateGPUTexture(texture, gl) {
+    const textureData = this.textureCache_.get(texture);
+    const WebGLObject = textureData.WebGLObject;
+    const target = textureData.target;
+
+    gl.bindTexture(target, WebGLObject);
+    this.setTextureParams(target, texture, gl);
+
+    const glUpdateFunc = this.TARGET_TO_GL_UPDATE[target];
+    glUpdateFunc(texture.data, target, texture.format, texture.type, gl);
+  }
+
+  updateGPUTexture2D(texData, target, format, type, gl) {
+    const buffer = texData.buffer;
+    const xOffset = texData.updateRegion.x;
+    const yOffset = texData.updateRegion.y;
+    const width = texData.updateRegion.width;
+    const height = texData.updateRegion.height;
+    if (texData.isHTMLImage) {
+      gl.texSubImage2D(target, 0, xOffset, yOffset, width, height, format, type, buffer);
+    } else {
+      gl.texSubImage2D(target, 0, xOffset, yOffset, width, height, format, type, buffer);
+    }
+  }
+
+  updateGPUTexture3D(texData, target, format, type, gl) {
+    const buffer = texData.buffer;
+    const xOffset = texData.updateRegion.x;
+    const yOffset = texData.updateRegion.y;
+    const zOffset = texData.updateRegion.z;
+    const width = texData.updateRegion.width;
+    const height = texData.updateRegion.height;
+    const depth = texData.updateRegion.depth;
+    gl.texSubImage3D(target, 0, xOffset, yOffset, zOffset, width, height, depth, format, type, buffer);
+  }
+
+  updateGPUTextureCube(faces, _, format, type, gl) {
+    for (let i = 0; i < faces.length; ++i) {
+      const target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
+      this.updateGPUTexture2D(faces[i], target, format, type, gl);
     }
   }
 
