@@ -1,6 +1,12 @@
 import { Cache } from 'utils/cache';
 import { compileShader, getFormattedCode, linkProgram } from 'webgl/webgl-shader';
 import { WebGLProgramData } from 'webgl/webgl-program-data';
+import { WebGLTextureManager } from 'webgl/webgl-texture-manager';
+
+const JSPrivateAttributes = new WeakMap();
+const self = (key) => {
+return JSPrivateAttributes.get(key);
+};
 
 export class WebGLContext {
 
@@ -28,6 +34,13 @@ export class WebGLContext {
     this._verbose = {};
     this._verbose.name = options.name || DEFAULT_NAME;
     this._verbose.logAll = options.verbose || false;
+
+    JSPrivateAttributes.set(this, {
+      textureManager: new WebGLTextureManager(),
+      vaoList: new Cache(),
+      vboList: new Cache(),
+      uboList: new Cache()
+    });
 
     this._VBOs = new Cache();
     this._VAOs = new Cache();
@@ -67,7 +80,12 @@ export class WebGLContext {
     }
 
     programData.webglObject = webglObject;
-    programData.init(this._gl);
+    programData.init(this._gl, {});
+
+    // TODO: this is gross. It should be changed by an Observer or whatever
+    // cool pattern could help here.
+    programData.uniformsData.textureManager = self(this).textureManager;
+
     return true;
   }
 
@@ -97,7 +115,7 @@ export class WebGLContext {
     for (let attrib of vao.vertexAttributes) {
       const vbo = attrib.vbo;
       const vboData = this._VBOs.get(vbo);
-      if (!vboData.webglObject) this.updateVBO(vbo);
+      this.updateVBO(vbo);
 
       this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vboData.webglObject);
       this._gl.enableVertexAttribArray(attrib.location);
@@ -111,28 +129,10 @@ export class WebGLContext {
     return true;
   }
 
-  /*updateUBO(ubo) {
-    const uboData = this._UBOs.get(ubo);
-
-    if (uboData.webGLObject) {
-      this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, uboData.webGLObject);
-      this._gl.bufferSubData(
-        this._gl.UNIFORM_BUFFER, 0, ubo.data, 0, uboData.length
-      );
-      return;
-    }
-
-    const updateType = ubo.dynamic ? this._gl.DYNAMC_DRAW : this._gl.STATIC_DRAW;
-    const webGLObject = this._gl.createBuffer();
-
-    this._gl.bindBuffer(this._gl.UNIFORM_BUFFER, webGLObject);
-    this._gl.bufferData(this._gl.UNIFORM_BUFFER, ubo.data, updateType);
-
-    uboData.webGLObject = webGLObject;
-  }*/
-
   draw(program, vao) {
     if (!program || !vao) return;
+
+    self(this).textureManager.reset();
 
     const programData = this._programs.get(program);
     if (programData.failed) return;
@@ -140,7 +140,7 @@ export class WebGLContext {
 
     const vaoData = this._VAOs.get(vao);
     if (vaoData.failed) return;
-    if (!vaoData.webglObject) this.updateVAO(vao);
+    this.updateVAO(vao);
 
     this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
 

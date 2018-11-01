@@ -21,8 +21,12 @@ export class WebGLUniformsData {
   update(uniforms, gl) {
     for (let u in this.list) {
       const uniform = uniforms[u];
-      if (uniform) this.list[u].upload(uniform, gl);
+      if (uniform) this.list[u].upload(uniform, gl, this.textureManager);
     }
+  }
+
+  addObserver(observerCallback) {
+    this.observers_.push(observerCallback);
   }
 
 }
@@ -144,8 +148,13 @@ class SingleUniform extends Uniform {
     this.addr = addr;
     this.funcName = GLSLTYPES_TO_UNIFORM_FUNC[type];
 
-    if (this.components === 1) this.upload = this.uploadSingle;
-    else this.upload = this.uploadMatrix;
+    const isSampler = IS_SAMPLER[type];
+    if (isSampler)
+      this.upload = this.uploadTexture;
+    else if (this.components === 1)
+      this.upload = this.uploadSingle;
+    else
+      this.upload = this.uploadMatrix;
   }
 
   uploadSingle(value, gl) {
@@ -153,6 +162,12 @@ class SingleUniform extends Uniform {
       this.value = value;
       gl[this.funcName](this.addr, value);
     }
+  }
+
+  uploadTexture(value, gl, textureManager) {
+    const unit = textureManager.requestTextureUnit();
+    gl[this.funcName](this.addr, unit);
+    textureManager.bind(value, unit, gl);
   }
 
   uploadMatrix(values, gl) {
@@ -170,6 +185,27 @@ class SingleUniform extends Uniform {
  * Maps used to map each uniform of the uniform hierarchy to the GL method used
  * to upload it on the GPU, as well as the number of components it has, etc...
  */
+
+/*
+ *
+ */
+const IS_SAMPLER = {};
+IS_SAMPLER[GLSLTYPES.SAMPLER_2D] = true;
+IS_SAMPLER[GLSLTYPES.SAMPLER_2D_SHADOW] = true;
+IS_SAMPLER[GLSLTYPES.SAMPLER_2D_ARRAY] = true;
+IS_SAMPLER[GLSLTYPES.SAMPLER_2D_ARRAY_SHADOW] = true;
+IS_SAMPLER[GLSLTYPES.SAMPLER_CUBE] = true;
+IS_SAMPLER[GLSLTYPES.SAMPLER_CUBE_SHADOW] = true;
+IS_SAMPLER[GLSLTYPES.SAMPLER_3D] = true;
+IS_SAMPLER[GLSLTYPES.INT_SAMPLER_2D] = true;
+IS_SAMPLER[GLSLTYPES.INT_SAMPLER_2D_ARRAY] = true;
+IS_SAMPLER[GLSLTYPES.INT_SAMPLER_CUBE] = true;
+IS_SAMPLER[GLSLTYPES.INT_SAMPLER_3D] = true;
+IS_SAMPLER[GLSLTYPES.UNSIGNED_INT_SAMPLER_2D] = true;
+IS_SAMPLER[GLSLTYPES.UNSIGNED_INT_SAMPLER_2D_ARRAY] = true;
+IS_SAMPLER[GLSLTYPES.UNSIGNED_INT_SAMPLER_CUBE] = true;
+IS_SAMPLER[GLSLTYPES.UNSIGNED_INT_SAMPLER_3] = true;
+
 
 /*
  * Convertes hexadecimal WebGL type to a string used to query

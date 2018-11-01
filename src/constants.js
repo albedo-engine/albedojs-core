@@ -1,5 +1,11 @@
 /* eslint camelcase: 0 */
 
+export const TARGETS = {
+  TEXTURE_2D: 0,
+  TEXTURE_3D: 0,
+  TEXTURE_CUBE_MAP: 0
+};
+
 export const TYPES = {
   BYTE: 0,
   UNSIGNED_BYTE: 0,
@@ -19,11 +25,50 @@ export const TYPES = {
 };
 
 export const FORMAT = {
-
+  ALPHA: 0,
+  LUMINANCE: 0,
+  LUMINANCE_ALPHA: 0,
+  RED: 0,
+  RED_INTEGER: 0,
+  RG: 0,
+  RG_INTEGER: 0,
+  RGB: 0,
+  RGB_INTEGER: 0,
+  RGBA: 0,
+  RGBA_INTEGER: 0
 };
 
 export const INTERNAL_FORMAT = {
-
+  RGB: 0,
+  RGBA: 0,
+  LUMINANCE_ALPHA: 0,
+  LUMINANCE: 0,
+  ALPHA: 0,
+  R8: 0,
+  R16F: 0,
+  R32F: 0,
+  R8UI: 0,
+  RG8: 0,
+  RG16F: 0,
+  FLOA: 0,
+  RG32F: 0,
+  RG8UI: 0,
+  RGB8: 0,
+  SRGB8: 0,
+  RGB565: 0,
+  R11F_G11F_B10F: 0,
+  RGB9_E5: 0,
+  RGB16F: 0,
+  RGB32F: 0,
+  RGB8UI: 0,
+  RGBA8: 0,
+  SRGB8_ALPHA8: 0,
+  RGB5_A1: 0,
+  RGB10_A2: 0,
+  RGBA4: 0,
+  RGBA16F: 0,
+  RGBA32F: 0,
+  RGBA8UI: 0
 };
 
 export const GLSLTYPES = {
@@ -72,14 +117,32 @@ export const GLSLTYPES = {
   UNSIGNED_INT_SAMPLER_2D_ARRAY: 0
 };
 
+export const WRAPPING = {
+  REPEAT: 0,
+  CLAMP_TO_EDGE: 0,
+  MIRRORED_REPEAT: 0
+};
+
+export const FILTERING = {
+  NEAREST: 0,
+  NEAREST_MIPMAP_NEAREST: 0,
+  NEAREST_MIPMAP_LINEAR: 0,
+  LINEAR: 0,
+  LINEAR_MIPMAP_NEAREST: 0,
+  LINEAR_MIPMAP_LINEAR: 0
+};
+
 const fillConstantsMap = (map) => {
   for (let k in map) map[k] = gl[k];
 };
 
 const gl = WebGL2RenderingContext;
 if (gl) {
+  fillConstantsMap(TARGETS);
   fillConstantsMap(TYPES);
   fillConstantsMap(GLSLTYPES);
   fillConstantsMap(FORMAT);
   fillConstantsMap(INTERNAL_FORMAT);
+  fillConstantsMap(WRAPPING);
+  fillConstantsMap(FILTERING);
 }
