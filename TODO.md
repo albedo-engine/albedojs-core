@@ -6,10 +6,12 @@
 ## General
 
 * [ ] Add error checking
+* [ ] Add WebGL state to track curremt bindings. Do not bind already bound objects.
 
 ## Texture
 
 * [ ] Add mipmapping
+* [ ] Add support for texture level
 * [ ] Add texNSubImage (via dirty flag)
 * [ ] Add compressed texture support
 * [ ] Texture3D : find CT scan sample

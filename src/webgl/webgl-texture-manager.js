@@ -40,7 +40,6 @@ export class WebGLTextureManager {
     if (!textureData.WebGLObject) {
       // This texture has not been created yet on the GPU.
       this.upload(texture, gl);
-      texture.dirty = false;
     } else if (texture.dirty) {
       // This texture is already on the GPU but dirty. Updates its content.
       this.updateGPUTexture(texture, gl);
@@ -62,6 +61,14 @@ export class WebGLTextureManager {
       gl.texParameteri(target, gl.TEXTURE_WRAP_R, texture.wrap.r);
   }
 
+  getOrCreate(texture, gl) {
+    const textureData = this.textureCache_.get(texture);
+    if (!textureData.WebGLObject) {
+      this.upload(texture, gl);      
+    }
+    return textureData.WebGLObject;
+  }
+
   upload(texture, gl) {
     const textureData = this.textureCache_.get(texture);
     textureData.WebGLObject = gl.createTexture();
@@ -77,13 +84,15 @@ export class WebGLTextureManager {
 
     const glUploadFunc = this.GetUploadFunc[target];
     glUploadFunc(texture.data, target, internalFormat, format, type, gl);
+
+    texture.dirty = false;
   }
 
   uploadTexture2D(texData, target, internalFormat, format, type, gl) {
     if (texData.isHTMLImage) {
       gl.texImage2D(target, 0, internalFormat, format, type, texData.buffer);
     } else {
-      gl.texImage2D(target, 0, internalFormat, texData.width, texData.height, format, type, texData.buffer);
+      gl.texImage2D(target, 0, internalFormat, texData.width, texData.height, 0, format, type, texData.buffer);
     }
   }
 
@@ -109,6 +118,8 @@ export class WebGLTextureManager {
 
     const glUpdateFunc = this.GetUpdateFunc[target];
     glUpdateFunc(texture.data, target, texture.format, texture.type, gl);
+
+    texture.dirty = false;
   }
 
   updateGPUTexture2D(texData, target, format, type, gl) {
