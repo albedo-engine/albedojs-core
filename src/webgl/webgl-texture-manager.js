@@ -17,15 +17,15 @@ export class WebGLTextureManager {
     this.unit_ = 0;
     this.textureCache_ = new Cache();
 
-    this.TARGET_TO_GL_UPLOAD = {};
-    this.TARGET_TO_GL_UPLOAD[Targets.TEXTURE_2D] = this.uploadTexture2D;
-    this.TARGET_TO_GL_UPLOAD[Targets.TEXTURE_3D] = this.uploadTexture3D;
-    this.TARGET_TO_GL_UPLOAD[Targets.TEXTURE_CUBE_MAP] = this.uploadTextureCube;
+    this.GetUploadFunc = {};
+    this.GetUploadFunc[Targets.TEXTURE_2D] = this.uploadTexture2D.bind(this);
+    this.GetUploadFunc[Targets.TEXTURE_3D] = this.uploadTexture3D.bind(this);
+    this.GetUploadFunc[Targets.TEXTURE_CUBE_MAP] = this.uploadTextureCube.bind(this);
 
-    this.TARGET_TO_GL_UPDATE = {};
-    this.TARGET_TO_GL_UPDATE[Targets.TEXTURE_2D] = this.updateGPUTexture2D;
-    this.TARGET_TO_GL_UPDATE[Targets.TEXTURE_3D] = this.updateGPUTexture3D;
-    this.TARGET_TO_GL_UPDATE[Targets.TEXTURE_CUBE_MAP] = this.updateGPUTextureCube;
+    this.GetUpdateFunc = {};
+    this.GetUpdateFunc[Targets.TEXTURE_2D] = this.updateGPUTexture2D.bind(this);
+    this.GetUpdateFunc[Targets.TEXTURE_3D] = this.updateGPUTexture3D.bind(this);
+    this.GetUpdateFunc[Targets.TEXTURE_CUBE_MAP] = this.updateGPUTextureCube.bind(this);
   }
 
   requestTextureUnit() {
@@ -75,7 +75,7 @@ export class WebGLTextureManager {
     gl.bindTexture(target, textureData.WebGLObject);
     this.setTextureParams(target, texture, gl);
 
-    const glUploadFunc = this.TARGET_TO_GL_UPLOAD[target];
+    const glUploadFunc = this.GetUploadFunc[target];
     glUploadFunc(texture.data, target, internalFormat, format, type, gl);
   }
 
@@ -107,7 +107,7 @@ export class WebGLTextureManager {
     gl.bindTexture(target, WebGLObject);
     this.setTextureParams(target, texture, gl);
 
-    const glUpdateFunc = this.TARGET_TO_GL_UPDATE[target];
+    const glUpdateFunc = this.GetUpdateFunc[target];
     glUpdateFunc(texture.data, target, texture.format, texture.type, gl);
   }
 
