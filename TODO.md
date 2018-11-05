@@ -6,10 +6,13 @@
 ## General
 
 * [ ] Add error checking
+* [ ] Add WebGL state to track curremt bindings. Do not bind already bound objects.
+* [ ] Framebuffer and RenderBuffer should be usable outisde a draw call (e.g: read pixels)
 
 ## Texture
 
 * [ ] Add mipmapping
+* [ ] Add support for texture level
 * [ ] Add texNSubImage (via dirty flag)
 * [ ] Add compressed texture support
 * [ ] Texture3D : find CT scan sample
