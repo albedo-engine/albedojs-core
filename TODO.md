@@ -7,6 +7,7 @@
 
 * [ ] Add error checking
 * [ ] Add WebGL state to track curremt bindings. Do not bind already bound objects.
+* [ ] Framebuffer and RenderBuffer should be usable outisde a draw call (e.g: read pixels)
 
 ## Texture
 

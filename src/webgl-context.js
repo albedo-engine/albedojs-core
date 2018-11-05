@@ -40,7 +40,8 @@ export class WebGLContext {
       vaoList: new Cache(),
       vboList: new Cache(),
       uboList: new Cache(),
-      fbList: new Cache()
+      fbList: new Cache(),
+      rbList: new Cache(),
     });
 
     this._VBOs = new Cache();
@@ -65,11 +66,24 @@ export class WebGLContext {
     const texManager = self(this).textureManager;
 
     this._gl.bindFramebuffer(target, fbData.glObject);
+  
     if (fb.dirty) {
       for (let point in fb.attachments) {
-        // TODO: support RenderBuffer
-        const glTexture = texManager.getOrCreate(fb.attachments[point], this._gl);
-        this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, point, this._gl.TEXTURE_2D, glTexture, 0);
+        const attachment = fb.attachments[point];
+        if (attachment.isRenderbuffer) {
+          const rbData = self(this).rbList.get(attachment);
+          // TODO: Add dirty flag, and move into Renderbuffer manager
+          if (!rbData.glObject) {
+            rbData.glObject = this._gl.createRenderbuffer();
+            this._gl.bindRenderbuffer(gl.RENDERBUFFER, rbData.glObject);
+            this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, 4, attachment.internalFormat, attachment.width, attachment.height);
+          }
+          this._gl.framebufferRenderbuffer(gl.FRAMEBUFFER, point, this._gl.RENDERBUFFER, rbData.glObject);
+        } else {
+          // TODO: support RenderBuffer
+          const glTexture = texManager.getOrCreate(fb.attachments[point], this._gl);
+          this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, point, this._gl.TEXTURE_2D, glTexture, 0);
+        }
       }
       console.log(this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER));
       fb.dirty = false;
