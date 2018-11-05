@@ -3,14 +3,14 @@ import { WebGLUniformsData } from 'webgl-uniforms-data';
 export class WebGLProgramData {
 
   constructor() {
-    this.webglObject = null;
+    this.glObject = null;
     this.failed = false;
 
     this.uniformsData = new WebGLUniformsData();
   }
 
   init(gl) {
-    this.uniformsData.init(this.webglObject, gl);
+    this.uniformsData.init(this.glObject, gl);
   }
 
   sendUniforms(uniforms, gl) {
@@ -18,7 +18,7 @@ export class WebGLProgramData {
   }
 
   use(gl) {
-    gl.useProgram(this.webglObject);
+    gl.useProgram(this.glObject);
   }
 
   bindVAO(vaoWebglObject, gl) {

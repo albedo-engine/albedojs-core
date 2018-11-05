@@ -1,8 +1,4 @@
-import { Cache } from 'utils/cache';
-import { compileShader, getFormattedCode, linkProgram } from 'webgl/webgl-shader';
-import { WebGLProgramData } from 'webgl/webgl-program-data';
-import { WebGLTextureManager } from 'webgl/webgl-texture-manager';
-import { WebGLParameters } from 'webgl/webgl-parameters';
+import { WebGLContextInternals } from 'webgl-context-internals';
 
 const JSPrivateAttributes = new WeakMap();
 const self = (key) => { return JSPrivateAttributes.get(key); };
@@ -23,7 +19,8 @@ export class WebGLContext {
       powerPreference: `default`
     };
 
-    this._gl = options.canvas.getContext(`webgl2`, contextOptions);
+    const gl = options.canvas.getContext(`webgl2`, contextOptions);
+
     const devicePixelRatio = window.devicePixelRatio || 1;
     options.canvas.style.width = `${options.canvas.clientWidth}px`;
     options.canvas.style.height = `${options.canvas.clientHeight}px`;
@@ -35,169 +32,43 @@ export class WebGLContext {
     this._verbose.logAll = options.verbose || false;
 
     JSPrivateAttributes.set(this, {
-      textureManager: new WebGLTextureManager(),
-      glParameters: new WebGLParameters(),
-      vaoList: new Cache(),
-      vboList: new Cache(),
-      uboList: new Cache(),
-      fbList: new Cache(),
-      rbList: new Cache(),
+      gl: gl,
+      internals: new WebGLContextInternals(gl)
     });
 
-    this._VBOs = new Cache();
-    this._VAOs = new Cache();
-    this._UBOs = new Cache();
-    this._programs = new Cache(WebGLProgramData);
-
-    self(this).glParameters.requestDefaultParams_(this._gl);
-  }
-
-  bindFramebuffer(fb, read = false) {
-    const target = read ? this._gl.READ_FRAMEBUFFER : this._gl.DRAW_FRAMEBUFFER;
-    // Bind screen framebuffer.
-    if (!fb) {
-      this._gl.bindFramebuffer(target, null);
-      return;
-    }
-
-    const fbData = self(this).fbList.get(fb);
-    if (!fbData.glObject) fbData.glObject = this._gl.createFramebuffer();
-
-    const texManager = self(this).textureManager;
-
-    this._gl.bindFramebuffer(target, fbData.glObject);
-  
-    if (fb.dirty) {
-      for (let point in fb.attachments) {
-        const attachment = fb.attachments[point];
-        if (attachment.isRenderbuffer) {
-          const rbData = self(this).rbList.get(attachment);
-          // TODO: Add dirty flag, and move into Renderbuffer manager
-          if (!rbData.glObject) {
-            rbData.glObject = this._gl.createRenderbuffer();
-            this._gl.bindRenderbuffer(gl.RENDERBUFFER, rbData.glObject);
-            this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, 4, attachment.internalFormat, attachment.width, attachment.height);
-          }
-          this._gl.framebufferRenderbuffer(gl.FRAMEBUFFER, point, this._gl.RENDERBUFFER, rbData.glObject);
-        } else {
-          // TODO: support RenderBuffer
-          const glTexture = texManager.getOrCreate(fb.attachments[point], this._gl);
-          this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, point, this._gl.TEXTURE_2D, glTexture, 0);
-        }
-      }
-      console.log(this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER));
-      fb.dirty = false;
-    }
+    //self(this).glParameters.requestDefaultParams_(gl);
   }
 
   compile(program) {
-    const vxSrc = program.vertexSource;
-    const fragSrc = program.fragmentSource;
-    const vertexShader = compileShader(vxSrc, this._gl.VERTEX_SHADER, this._gl);
-    const fragmentShader = compileShader(fragSrc, this._gl.FRAGMENT_SHADER, this._gl);
-    const vertexFailed = !(vertexShader instanceof WebGLShader);
-    const fragmentFailed = !(fragmentShader instanceof WebGLShader);
-    const failed = vertexFailed || fragmentFailed;
-
-    const programData = this._programs.get(program);
-    programData.failed = failed;
-
-    if (vertexFailed) {
-      const code = getFormattedCode(vxSrc);
-      console.warn(`vertex shader ${WARN.SHADER_COMPILE}\n${vertexShader}`);
-      console.warn(`${code}`);
-    }
-    if (fragmentFailed) {
-      const code = getFormattedCode(fragSrc);
-      console.warn(`fragment shader ${WARN.SHADER_COMPILE}\n${fragmentShader}`);
-      console.warn(`${code}`);
-    }
-
-    if (failed) return false;
-
-    const webglObject = linkProgram(vertexShader, fragmentShader, this._gl);
-    if (!(webglObject instanceof WebGLProgram)) {
-      console.warn(`${WARN.PROGRAM_LINK}`);
-      return false;
-    }
-
-    programData.webglObject = webglObject;
-    programData.init(this._gl, {});
-
-    // TODO: this is gross. It should be changed by an Observer or whatever
-    // cool pattern could help here.
-    programData.uniformsData.textureManager = self(this).textureManager;
-
-    return true;
+    self(this).internals.compile(program);
   }
 
-  updateVBO(vbo) {
-    const vboData = this._VBOs.get(vbo);
-    if (vboData.failed) return false;
-
-    if (vboData.webglObject) return true;
-
-    const drawType = vbo.dynamic ? this._gl.DYNAMC_DRAW : this._gl.STATIC_DRAW;
-
-    const webglObject = this._gl.createBuffer();
-    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, webglObject);
-    this._gl.bufferData(this._gl.ARRAY_BUFFER, vbo.data, drawType);
-
-    vboData.webglObject = webglObject;
-    return true;
+  initFramebuffer(fb) {
+    //self(this).internals.compile(program);
   }
 
-  updateVAO(vao) {
-    const vaoData = this._VAOs.get(vao);
-    if (vaoData.webglObject) return true;
+  bindFramebuffer(fb) {
+    self(this).internals.bindFramebuffer(fb);
+  }
 
-    const webglObject = this._gl.createVertexArray();
-    this._gl.bindVertexArray(webglObject);
-
-    for (let attrib of vao.vertexAttributes) {
-      const vbo = attrib.vbo;
-      const vboData = this._VBOs.get(vbo);
-      this.updateVBO(vbo);
-
-      this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vboData.webglObject);
-      this._gl.enableVertexAttribArray(attrib.location);
-      this._gl.vertexAttribPointer(attrib.location, vbo.components, vbo.type,
-        attrib.normalized, vbo.stride, attrib.offset
-      );
-    }
-    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
-
-    vaoData.webglObject = webglObject;
-    return true;
+  initVertexBufferObject(vbo) {
+    self(this).internals.initVertexBufferObject(vbo);
+  }
+  
+  initVertexArrayObject(vao) {
+    self(this).internals.initVertexArrayObject(vao);
   }
 
   draw(program, vao) {
-    if (!program || !vao) return;
-
-    self(this).textureManager.reset();
-
-    const programData = this._programs.get(program);
-    if (programData.failed) return;
-    if (!programData.webglObject) this.compile(program);
-
-    const vaoData = this._VAOs.get(vao);
-    if (vaoData.failed) return;
-    this.updateVAO(vao);
-
-    this._gl.viewport(0, 0, this._gl.canvas.width, this._gl.canvas.height);
-
-    this._gl.clearColor(0, 0, 0, 0);
-    this._gl.clear(this._gl.COLOR_BUFFER_BIT);
-
-    programData.use(this._gl);
-    programData.sendUniforms(program.uniforms, this._gl);
-    programData.bindVAO(vaoData.webglObject, this._gl);
-
-    this._gl.drawArrays(this._gl.TRIANGLES, 0, vao.count);
+    self(this).internals.draw(program, vao);
   }
 
+  clear() {}
+
+  viewport() {}
+
   get gl() {
-    return this._gl;
+    return self(this).gl;
   }
 
 }

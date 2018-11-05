@@ -1,6 +1,5 @@
 # TODO
 
-* [ ] Add basic structure
 * [ ] Add test suite (puppeteer)
 
 ## General
@@ -9,6 +8,7 @@
 * [ ] Add WebGL state to track curremt bindings. Do not bind already bound objects.
 * [ ] Framebuffer and RenderBuffer should be usable outisde a draw call (e.g: read pixels)
 * [ ] Improve GL state, by creating intermediary managers.
+* [ ] Add ELEMENT to VBO
 
 ## Texture
 
