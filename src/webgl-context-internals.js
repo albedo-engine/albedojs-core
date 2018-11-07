@@ -1,59 +1,80 @@
 import { compileShader, getFormattedCode, linkProgram } from 'webgl/webgl-shader';
 import { Cache } from 'utils/cache';
-import { WebGLProgramData } from 'webgl/webgl-program-data';
-import { WebGLTextureManager } from 'webgl/webgl-texture-manager';
 import { WebGLParameters } from 'webgl/webgl-parameters';
+import { WebGLProgramData } from 'webgl/webgl-program-data';
+import { WebGLState } from 'webgl/webgl-state';
+import { WebGLTextureManager } from 'webgl/webgl-texture-manager';
 
 export class WebGLContextInternals {
 
   constructor(gl) {
     this.gl = gl;
+    this.parameters = WebGLParameters.fetch();
 
+    this.state_ = new WebGLState();
     this.VAOs_ = new Cache();
     this.VBOs_ = new Cache();
     this.UBOs_ = new Cache();
     this.FBs_ = new Cache();
     this.RBs_ = new Cache();
+    this.textures_ = new Cache();
     this.programs_ = new Cache(WebGLProgramData);
 
-    this.textureManager_ = new WebGLTextureManager();
+    this.textureManager_ = new WebGLTextureManager(this.textures_);
   }
 
-  bindFramebuffer(fb) {
+  initTexture(texture) {
+    
+  }
+
+  initRenderbuffer(rb) {
+    const rbInfo = this.RBs_.get(rb);
+    if (rbInfo.failed) return null;
+    if (!rbInfo.glObject) rbInfo.glObject = this.gl.createRenderbuffer();
+    if (!rb.dirty) return rbInfo;
+
+    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, rbInfo.glObject);
+    this.gl.renderbufferStorageMultisample(
+      this.gl.RENDERBUFFER, 4, rb.internalFormat, rb.width, rb.height
+    );
+
+    rb.dirty = false;
+    return rbInfo;
+  }
+
+  initFramebuffer(fb) {
+    const fbInfo = this.FBs_.get(fb);
+    if (fbInfo.failed) return null;
+    if (!fbInfo.glObject) fbInfo.glObject = this.gl.createFramebuffer();
+    if (!fb.dirty) return fbInfo;
+
+    this.gl.bindFramebuffer(gl.FRAMEBUFFER, fbInfo.glObject);
+
+    for (let point in fb.attachments) {
+      const attachment = fb.attachments[point];
+
+      if (attachment.isRenderbuffer) {
+        const rbInfo = this.initRenderbuffer(attachment);
+        this.gl.framebufferRenderbuffer(gl.FRAMEBUFFER, point, this.gl.RENDERBUFFER, rbInfo.glObject);
+      } else {
+        const glTexture = texManager.getOrCreate(fb.attachments[point], this.gl);
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, point, this.gl.TEXTURE_2D, glTexture, 0);
+      }
+
+    }
+    fb.dirty = false;
+    return fbInfo;
+  }
+
+  bindFramebuffer(fb, read) {
     const target = read ? this.gl.READ_FRAMEBUFFER : this.gl.DRAW_FRAMEBUFFER;
     // Bind screen framebuffer.
     if (!fb) {
       this.gl.bindFramebuffer(target, null);
       return;
     }
-
-    const fbInfo = this.FBs_.get(fb);
-    if (!fbInfo.glObject) fbInfo.glObject = this.gl.createFramebuffer();
-
-    const texManager = this.textureManager_;
-    this.gl.bindFramebuffer(target, fbInfo.glObject);
-  
-    if (fb.dirty) {
-      for (let point in fb.attachments) {
-        const attachment = fb.attachments[point];
-        if (attachment.isRenderbuffer) {
-          const rbData = self(this).rbList.get(attachment);
-          // TODO: Add dirty flag, and move into Renderbuffer manager
-          if (!rbData.glObject) {
-            rbData.glObject = this._gl.createRenderbuffer();
-            this._gl.bindRenderbuffer(gl.RENDERBUFFER, rbData.glObject);
-            this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, 4, attachment.internalFormat, attachment.width, attachment.height);
-          }
-          this._gl.framebufferRenderbuffer(gl.FRAMEBUFFER, point, this._gl.RENDERBUFFER, rbData.glObject);
-        } else {
-          // TODO: support RenderBuffer
-          const glTexture = texManager.getOrCreate(fb.attachments[point], this._gl);
-          this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, point, this._gl.TEXTURE_2D, glTexture, 0);
-        }
-      }
-      console.log(this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER));
-      fb.dirty = false;
-    }
+    const fbInfo = this.initFramebuffer(fb);
+    this.gl.bindFramebuffer(gl.FRAMEBUFFER, fbInfo.glObject);
   }
 
   compile(program) {

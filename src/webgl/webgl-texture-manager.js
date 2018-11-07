@@ -13,9 +13,9 @@ const detectTarget = (texture, gl) => {
 
 export class WebGLTextureManager {
 
-  constructor() {
+  constructor(textureCache) {
     this.unit_ = 0;
-    this.textureCache_ = new Cache();
+    this.textureCache_ = textureCache;
 
     this.GetUploadFunc = {};
     this.GetUploadFunc[Targets.TEXTURE_2D] = this.uploadTexture2D.bind(this);

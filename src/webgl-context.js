@@ -47,8 +47,8 @@ export class WebGLContext {
     //self(this).internals.compile(program);
   }
 
-  bindFramebuffer(fb) {
-    self(this).internals.bindFramebuffer(fb);
+  bindFramebuffer(fb, read = false) {
+    self(this).internals.bindFramebuffer(fb, read);
   }
 
   initVertexBufferObject(vbo) {
@@ -63,12 +63,18 @@ export class WebGLContext {
     self(this).internals.draw(program, vao);
   }
 
+  readPixels(x, y, w, h, ) {}
+
   clear() {}
 
   viewport() {}
 
   get gl() {
     return self(this).gl;
+  }
+
+  get defaultParameters() {
+    return self(this).internals.parameters;
   }
 
 }
