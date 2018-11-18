@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>AlbedoJS - Simple Cube</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    body {
+      font-family: Monospace;
+      background-color: #f0f0f0;
+      margin: 0px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" style="width: 100%; height: 100%"></canvas>
+  <script type="module">
+    import * as Albedo from '../dist/albedo.js';
+
+    const vertexShader = `#version 300 es
+
+			precision highp float;
+
+      struct Test {
+        mat4x4 worldMatrix;
+        float alpha;
+      };
+      uniform Test uData[4];
+
+      in vec3 position;
+      in vec2 uv;
+
+      out vec2 vUv;
+
+			void main()
+			{
+        vUv = uv;
+				gl_Position = vec4(position, 1.0);
+			}
+			`;
+
+    const fragmentShader = `#version 300 es
+
+			precision highp float;
+
+      in vec2 vUv;
+      out vec4 FragColor;
+      
+      uniform sampler2D uTexture;
+
+			void main()
+			{
+				FragColor = vec4(texture(uTexture, vUv).rgb, 1.0);
+			}
+			`;
+
+    const canvas = document.getElementById(`canvas`);
+    const context = new Albedo.WebGLContext({ canvas: canvas });
+
+    const program = new Albedo.Program(vertexShader, fragmentShader);
+
+    const verticesVBO = new Albedo.VBO(new Float32Array([
+      -1.0, 1.0, 0.0,
+      -1.0, -1.0, 0.0,
+      1.0, -1.0, 0.0,
+      -1.0, 1.0, 0.0,
+      1.0, -1.0, 0.0,
+      1.0, 1.0, 0.0,
+    ]));
+    const uvVBO = new Albedo.VBO(new Float32Array([
+      0.0, 0.0,
+      0.0, 1.0,
+      1.0, 1.0,
+      0.0, 0.0,
+      1.0, 1.0,
+      1.0, 0.0,
+    ]));
+    uvVBO.components = 2;
+
+    const vao = new Albedo.VAO()
+      .vertexAttrib({ vbo: verticesVBO })
+      .vertexAttrib({ vbo: uvVBO, location: 1 });
+
+    const image = new Image();
+    image.onload = function(data) {
+      program.uniforms.uTexture = new Albedo.Texture2D({buffer: image});
+      init();
+    };
+    image.src = './assets/textures/cat.jpg';
+
+    function init() {
+      render();
+    }
+
+    function render() {
+      context.draw(program, vao);
+      window.requestAnimationFrame(render);
+    }
+  </script>
+</body>
+
+</html>

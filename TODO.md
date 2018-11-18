@@ -9,6 +9,7 @@
 * [ ] Framebuffer and RenderBuffer should be usable outisde a draw call (e.g: read pixels)
 * [ ] Improve GL state, by creating intermediary managers.
 * [ ] Add ELEMENT to VBO
+* [ ] Release buffer reference after upload if ask by user
 
 ## Texture
 

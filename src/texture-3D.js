@@ -7,26 +7,31 @@ const self = (key) => { return JSPrivateAttributes.get(key); };
 
 export class Texture3D extends AbstractTexture {
 
-  static get isTexture3D() {
-    return true;
-  }
+  static get isTexture3D() { return true; }
 
   constructor(definition) {
-    const def = Object.assign(DEFAULT_DEFINITION, definition);
+    const def = Object.assign({}, DEFAULT_DEFINITION, definition);
     super(def);
 
     this.wrap.r = def.wrapR;
 
     JSPrivateAttributes.set(this, {
-      data: null
+      data: new TextureData(this, null, 0, 0, 0)
     });
 
-    this.init(def.buffer, def.width, def.height, def.depth);
+    this.update(def.buffer, def.width, def.height, def.depth);
+    this.updateMipmaps(def.mipmaps);
   }
 
-  init(buffer, width, height, depth) {
-    self(this).data = new TextureData(buffer, width, height, depth);
-    this.dirty = true;
+  update(buffer, width, height, depth) {
+    this.data.buffer = buffer
+    this.data.width = width;
+    this.data.height = height;
+    this.data.depth = depth;
+  }
+
+  updateMipmaps(mipmaps) {
+    self(this).mipmaps = super.updateMipmaps(mipmaps);
   }
 
   // TODO!

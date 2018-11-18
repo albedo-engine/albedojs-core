@@ -1,8 +1,6 @@
 import * as CONSTANTS from '../constants';
 const Targets = CONSTANTS.TARGETS;
 
-import { Cache } from 'utils/cache';
-
 const detectTarget = (texture, gl) => {
   const ctor = texture.constructor;
   if (ctor.isTexture2D) return gl.TEXTURE_2D;
@@ -16,16 +14,6 @@ export class WebGLTextureManager {
   constructor(textureCache) {
     this.unit_ = 0;
     this.textureCache_ = textureCache;
-
-    this.GetUploadFunc = {};
-    this.GetUploadFunc[Targets.TEXTURE_2D] = this.uploadTexture2D.bind(this);
-    this.GetUploadFunc[Targets.TEXTURE_3D] = this.uploadTexture3D.bind(this);
-    this.GetUploadFunc[Targets.TEXTURE_CUBE_MAP] = this.uploadTextureCube.bind(this);
-
-    this.GetUpdateFunc = {};
-    this.GetUpdateFunc[Targets.TEXTURE_2D] = this.updateGPUTexture2D.bind(this);
-    this.GetUpdateFunc[Targets.TEXTURE_3D] = this.updateGPUTexture3D.bind(this);
-    this.GetUpdateFunc[Targets.TEXTURE_CUBE_MAP] = this.updateGPUTextureCube.bind(this);
   }
 
   requestTextureUnit() {
@@ -35,21 +23,18 @@ export class WebGLTextureManager {
   bind(texture, unit, gl) {
     if (!texture.data) return;
 
-    const textureData = this.textureCache_.get(texture);
-
-    if (!textureData.WebGLObject) {
-      // This texture has not been created yet on the GPU.
-      this.upload(texture, gl);
-    } else if (texture.dirty) {
-      // This texture is already on the GPU but dirty. Updates its content.
-      this.updateGPUTexture(texture, gl);
-      texture.dirty = false;
-    } else {
-      // Texture is all set. We only need to bind it.
-      gl.bindTexture(textureData.target, textureData.WebGLObject);
-    }
+    const textureInfo = this.textureCache_.get(texture);
+    const glObject = textureInfo.glObject;
 
     gl.activeTexture(gl.TEXTURE0 + unit);
+    if (glObject && !texture.dirty) {
+      // Texture is all set. We only need to bind it.
+      gl.bindTexture(textureInfo.target, glObject);
+    } else {
+      // This texture has either not been created yet on the GPU, or
+      // is already on the GPU but dirty. In this case: update its content.
+      this.uploadOrUpdate(texture, gl);
+    }
   }
 
   setTextureParams(target, texture, gl) {
@@ -69,88 +54,42 @@ export class WebGLTextureManager {
     return textureData.WebGLObject;
   }
 
-  upload(texture, gl) {
-    const textureData = this.textureCache_.get(texture);
-    textureData.WebGLObject = gl.createTexture();
-    textureData.target = detectTarget(texture, gl);
-
-    const target = textureData.target;
+  uploadOrUpdate(texture, gl) {
+    const textureInfo = this.textureCache_.get(texture);
+    if (!textureInfo.glObject) {
+      textureInfo.glObject = gl.createTexture();
+      textureInfo.target = detectTarget(texture, gl);
+    }
+    
+    const target = textureInfo.target;
     const type = texture.type;
     const format = texture.format;
-    const internalFormat = texture.internalFormat;
+    const iFormat = texture.internalFormat;
+    
+    gl.bindTexture(target, textureInfo.glObject);
 
-    gl.bindTexture(target, textureData.WebGLObject);
+    // TODO: cache texture parans, and only apply this call when cache does
+    // not match the data anymore.
     this.setTextureParams(target, texture, gl);
-
-    const glUploadFunc = this.GetUploadFunc[target];
-    glUploadFunc(texture.data, target, internalFormat, format, type, gl);
-
-    texture.dirty = false;
-  }
-
-  uploadTexture2D(texData, target, internalFormat, format, type, gl) {
-    if (texData.isHTMLImage) {
-      gl.texImage2D(target, 0, internalFormat, format, type, texData.buffer);
-    } else {
-      gl.texImage2D(target, 0, internalFormat, texData.width, texData.height, 0, format, type, texData.buffer);
+  
+    // Updates or uploads base (mipmap 0).
+    // Updates or uploads mipmaps (mipmap > 0).
+    switch (target) {
+      case gl.TEXTURE_2D:
+        TextureUploader.texture2D(gl, target, iFormat, format, type, 0, texture.data);
+        MipmapsUploader.texture2D(gl, target, iFormat, format, type, texture);
+      break;
+      case gl.TEXTURE_3D:
+        TextureUploader.texture3D(gl, target, iFormat, format, type, 0, texture.data);
+        MipmapsUploader.texture3D(gl, target, iFormat, format, type, texture);
+      break;
+      case gl.TEXTURE_CUBE_MAP:
+        TextureUploader.textureCube(gl, target, iFormat, format, type, 0, texture.data);
+        MipmapsUploader.textureCube(gl, target, iFormat, format, type, texture);
+      break;
     }
-  }
 
-  uploadTexture3D(texData, target, internalFormat, format, type, gl) {
-    const buffer = texData.buffer;
-    gl.texImage3D(target, 0, internalFormat, texData.width, texData.height, texData.depth, 0, format, type, buffer);
-  }
-
-  uploadTextureCube(faces, _, internalFormat, format, type, gl) {
-    for (let i = 0; i < 6; ++i) {
-      const target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
-      this.uploadTexture2D(faces[i], target, internalFormat, format, type, gl);
-    }
-  }
-
-  updateGPUTexture(texture, gl) {
-    const textureData = this.textureCache_.get(texture);
-    const WebGLObject = textureData.WebGLObject;
-    const target = textureData.target;
-
-    gl.bindTexture(target, WebGLObject);
-    this.setTextureParams(target, texture, gl);
-
-    const glUpdateFunc = this.GetUpdateFunc[target];
-    glUpdateFunc(texture.data, target, texture.format, texture.type, gl);
-
-    texture.dirty = false;
-  }
-
-  updateGPUTexture2D(texData, target, format, type, gl) {
-    const buffer = texData.buffer;
-    const xOffset = texData.updateRegion.x;
-    const yOffset = texData.updateRegion.y;
-    const width = texData.updateRegion.width;
-    const height = texData.updateRegion.height;
-    if (texData.isHTMLImage) {
-      gl.texSubImage2D(target, 0, xOffset, yOffset, width, height, format, type, buffer);
-    } else {
-      gl.texSubImage2D(target, 0, xOffset, yOffset, width, height, format, type, buffer);
-    }
-  }
-
-  updateGPUTexture3D(texData, target, format, type, gl) {
-    const buffer = texData.buffer;
-    const xOffset = texData.updateRegion.x;
-    const yOffset = texData.updateRegion.y;
-    const zOffset = texData.updateRegion.z;
-    const width = texData.updateRegion.width;
-    const height = texData.updateRegion.height;
-    const depth = texData.updateRegion.depth;
-    gl.texSubImage3D(target, 0, xOffset, yOffset, zOffset, width, height, depth, format, type, buffer);
-  }
-
-  updateGPUTextureCube(faces, _, format, type, gl) {
-    for (let i = 0; i < faces.length; ++i) {
-      const target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
-      this.updateGPUTexture2D(faces[i], target, format, type, gl);
-    }
+    texture.__dirty = false;
   }
 
   reset() {
@@ -159,6 +98,106 @@ export class WebGLTextureManager {
 
   get unit() {
     return this._unit;
+  }
+
+}
+
+class TextureUploader {
+
+  static texture2D(gl, target, internalFormat, format, type, mipLvl, texData) {
+    // buffer, width, or height changed. We need to make an allocation using
+    // `texImage2D'.
+    if (texData.__dirtyData) {
+      if (texData.isHTMLImage) {
+        gl.texImage2D(target, mipLvl, internalFormat, format, type, texData.buffer);
+      } else {
+        gl.texImage2D(target, mipLvl, internalFormat, texData.width, texData.height, 0, format, type, texData.buffer);
+      }
+      texData.__dirtyData = false;
+    }
+    // buffer or update region have been updated within the bounds of the
+    // initial width and height.
+    else if (texData.dirty) {
+      const xOffset = texData.updateRegion.x;
+      const yOffset = texData.updateRegion.y;
+      const width = texData.updateRegion.width;
+      const height = texData.updateRegion.height;
+      if (texData.isHTMLImage) {
+        gl.texSubImage2D(target, mipLvl, xOffset, yOffset, width, height, format, type, texData.buffer);
+      } else {
+        gl.texSubImage2D(target, mipLvl, xOffset, yOffset, width, height, format, type, buffer);
+      }
+      texData.dirty = false;
+    }
+  }
+
+  static texture3D(gl, target, iFormat, format, type, mipLvl, texData) {
+    // buffer, width, height, or depth changed. We need to make an
+    // allocation using `texImage3D'.
+    if (texData.__dirtyData) {
+      gl.texImage3D(target, mipLvl, iFormat, texData.width, texData.height, texData.depth, 0, format, type, texData.buffer);
+      texData.__dirtyData = false;
+    }
+    // buffer or update region have been updated within the bounds of the
+    // initial width, height, and depth.
+    else if (texData.dirty) {
+      const xOffset = texData.updateRegion.x;
+      const yOffset = texData.updateRegion.y;
+      const zOffset = texData.updateRegion.z;
+      const width = texData.updateRegion.width;
+      const height = texData.updateRegion.height;
+      const depth = texData.updateRegion.depth;
+      gl.texSubImage3D(target, mipLvl, xOffset, yOffset, zOffset, width, height, depth, format, type, texData.buffer);
+    }
+  }
+
+  static textureCube(gl, _, iFormat, format, type, mipLvl, faces) {
+    for (let i = 0; i < 6; ++i) {
+      const target = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
+      TextureUploader.texture2D(gl, target, iFormat, format, type, mipLvl, faces[i]);
+    }
+  }
+
+}
+
+class MipmapsUploader {
+
+  static glAutoMipmap(gl, texture, target) {
+    if (texture.autoMipmaps) {
+      gl.generateMipmap(target);
+      return true;
+    } 
+    return false;
+  }
+
+  static texture2D(gl, target, iFormat, format, type, texture) {
+    // Makes use of the gl native mipmap generation, if specified by user.
+    if (this.glAutoMipmap(gl, texture, target)) return;
+    if (!texture.mipmaps) return;
+    for (let i = 0; i < texture.mipmaps.length; ++i) {
+      const data = texture.mipmaps[i];
+      TextureUploader.texture2D(gl, target, iFormat, format, type, i + 1, data);
+    }
+  }
+
+  static texture3D(gl, target, iFormat, format, type, texture) {
+    // Makes use of the gl native mipmap generation, if specified by user.
+    if (this.glAutoMipmap(gl, texture, target)) return;
+    if (!texture.mipmaps) return;
+    for (let i = 0; i < texture.mipmaps.length; ++i) {
+      const data = texture.mipmaps[i];
+      TextureUploader.texture3D(gl, target, iFormat, format, type, i + 1, data);
+    }
+  }
+
+  static textureCube(gl, texture) {
+    // Makes use of the gl native mipmap generation, if specified by user.
+    if (this.glAutoMipmap(gl, texture, target)) return;
+    if (!texture.mipmaps) return;
+    for (let i = 0; i < texture.mipmaps.length; ++i) {
+      const faces = texture.mipmaps[i];
+      TextureUploader.textureCube(gl, target, internalFormat, format, type, i + 1, faces);
+    }
   }
 
 }

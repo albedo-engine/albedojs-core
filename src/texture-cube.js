@@ -14,8 +14,7 @@ export class TextureCube extends AbstractTexture {
   }
 
   constructor(definition) {
-    // TODO: support instanciation via data only.
-    const def = Object.assign(DEFAULT_DEFINITION, definition);
+    const def = Object.assign({}, DEFAULT_DEFINITION, definition);
     super(def);
 
     this.wrap.r = def.wrapR;
@@ -24,15 +23,32 @@ export class TextureCube extends AbstractTexture {
       data: new Array(6)
     });
 
-    this.init(def.faces, def.width, def.height);
+    const data = self(this).data;
+    for (let i = 0; i < 6; ++i) { data[i] = new TextureData(null, 0, 0); }
+
+    this.update(def.faces, def.width, def.height);
+    this.updateMipmaps(mipmaps);
   }
 
-  init(faces, width, height) {
-    // TODO: should we check for errors?
+  update(faces, width, height) {
     const data = self(this).data;
-    for (let i = 0; i < faces.length; ++i) {
-      data[i] = new TextureData(faces[i], width, height);
+    for (let i = 0; i < 6; ++i) {
+      data[i].buffer = faces[i]
+      data[i].width = width;
+      data[i].height = height;
     }
+  }
+
+  updateMipmaps(faces) {
+    if (!Array.isArray(faces) || !faces.length) return;
+
+    const mipmaps = new Array(6);
+    for (let i = 0; i < 6; ++i) {
+      const mips = faces[i];
+      mipmaps[i] = super.updateMipmaps(mips);
+    }
+
+    self(this).mipmaps = mipmaps;
   }
 
   // TODO!

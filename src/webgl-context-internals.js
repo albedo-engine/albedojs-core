@@ -9,7 +9,7 @@ export class WebGLContextInternals {
 
   constructor(gl) {
     this.gl = gl;
-    this.parameters = WebGLParameters.fetch();
+    this.parameters = WebGLParameters.fetch(this.gl);
 
     this.state_ = new WebGLState();
     this.VAOs_ = new Cache();
@@ -125,6 +125,7 @@ export class WebGLContextInternals {
 
   initVertexArrayObject(vao) {
     const vaoInfo = this.VAOs_.get(vao);
+    if (vaoInfo.failed) return null;
     if (vaoInfo.glObject) return vaoInfo;
 
     const glObject = this.gl.createVertexArray();
@@ -169,11 +170,8 @@ export class WebGLContextInternals {
     this.textureManager_.reset();
 
     const programData = this.programs_.get(program);
-
-    const vaoInfo = this.VAOs_.get(vao);
-    if (vaoInfo.failed) return;
-    
-    this.initVertexArrayObject(vao);
+    const vaoInfo = this.initVertexArrayObject(vao);
+    if (!vaoInfo === null) return;
 
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
