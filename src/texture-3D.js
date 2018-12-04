@@ -5,6 +5,8 @@ import { TextureData } from './texture-data';
 const JSPrivateAttributes = new WeakMap();
 const self = (key) => { return JSPrivateAttributes.get(key); };
 
+const DEFAULT_DEFINITION = { wrapR: CONSTANTS.WRAPPING.CLAMP_TO_EDGE };
+
 export class Texture3D extends AbstractTexture {
 
   static get isTexture3D() { return true; }
@@ -39,8 +41,12 @@ export class Texture3D extends AbstractTexture {
     throw new Error(`Not implemented yet.`);
   }
 
-}
+  get data() {
+    return self(this).data;
+  }
 
-const DEFAULT_DEFINITION = {
-  wrapR: CONSTANTS.WRAPPING.CLAMP_TO_EDGE
-};
+  get mipmaps() {
+    return self(this).mipmaps;
+  }
+
+}

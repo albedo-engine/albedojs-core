@@ -17,11 +17,13 @@ export class TextureData {
       depth: depth || 1,
       isHTMLImage: false
     });
-    
+
     this.__dirtyData = true;
     this.__texture = texture;
 
-    this.setUpdateRegion(0, 0, 0, self(this).width, self(this).height, self(this).depth);
+    this.setUpdateRegion(
+      0, 0, 0, self(this).width, self(this).height, self(this).depth
+    );
   }
 
   setUpdateRegion(x, y, z, width, height, depth) {

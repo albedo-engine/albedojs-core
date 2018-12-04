@@ -1,8 +1,21 @@
 import * as CONSTANTS from './constants';
+import { TextureData } from './texture-data';
+
+const DEFAULT_DEFINITION = {
+  type: CONSTANTS.TYPES.UNSIGNED_BYTE,
+  format: CONSTANTS.FORMAT.RGB,
+  internalFormat: CONSTANTS.INTERNAL_FORMAT.RGB,
+  autoMipmaps: false,
+  wrapS: CONSTANTS.WRAPPING.CLAMP_TO_EDGE,
+  wrapT: CONSTANTS.WRAPPING.CLAMP_TO_EDGE,
+  magFiltering: CONSTANTS.FILTERING.LINEAR,
+  minFiltering: CONSTANTS.FILTERING.LINEAR
+};
 
 export class AbstractTexture {
-
-  static get isTexture() { return true; }
+  static get isTexture() {
+    return true;
+  }
 
   constructor(definition) {
     const def = Object.assign({}, DEFAULT_DEFINITION, definition);
@@ -35,23 +48,12 @@ export class AbstractTexture {
         mips[i].depth = mipData.depth;
       }
     }
+
     return mips;
   }
 
   // TODO!
   clone() {
-    throw new Error(`Not implemented yet.`);
+    throw new Error('Not implemented yet.');
   }
-
 }
-
-const DEFAULT_DEFINITION = {
-  type: CONSTANTS.TYPES.UNSIGNED_BYTE,
-  format: CONSTANTS.FORMAT.RGB,
-  internalFormat: CONSTANTS.INTERNAL_FORMAT.RGB,
-  autoMipmaps: false,
-  wrapS: CONSTANTS.WRAPPING.CLAMP_TO_EDGE,
-  wrapT: CONSTANTS.WRAPPING.CLAMP_TO_EDGE,
-  magFiltering: CONSTANTS.FILTERING.LINEAR,
-  minFiltering: CONSTANTS.FILTERING.LINEAR
-};

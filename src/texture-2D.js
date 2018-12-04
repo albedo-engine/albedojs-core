@@ -4,6 +4,13 @@ import { TextureData } from './texture-data';
 const JSPrivateAttributes = new WeakMap();
 const self = (key) => { return JSPrivateAttributes.get(key); };
 
+const DEFAULT_DEFINITION = {
+  buffer: null,
+  mipmaps: null,
+  width: 0,
+  height: 0
+};
+
 export class Texture2D extends AbstractTexture {
 
   static get isTexture2D() {
@@ -47,10 +54,3 @@ export class Texture2D extends AbstractTexture {
   }
 
 }
-
-const DEFAULT_DEFINITION = {
-  buffer: null,
-  mipmaps: null,
-  width: 0,
-  height: 0
-};

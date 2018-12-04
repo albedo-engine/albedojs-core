@@ -3,15 +3,16 @@ import { AbstractTexture } from './abstract-texture';
 import { TextureData } from './texture-data';
 
 const JSPrivateAttributes = new WeakMap();
-const self = (key) => {
-  return JSPrivateAttributes.get(key);
+const self = key => { return JSPrivateAttributes.get(key); };
+
+const DEFAULT_DEFINITION = {
+  faces: null,
+  wrapR: CONSTANTS.WRAPPING.CLAMP_TO_EDGE
 };
 
 export class TextureCube extends AbstractTexture {
 
-  static get isTextureCube() {
-    return true;
-  }
+  static get isTextureCube() { return true; }
 
   constructor(definition) {
     const def = Object.assign({}, DEFAULT_DEFINITION, definition);
@@ -19,21 +20,21 @@ export class TextureCube extends AbstractTexture {
 
     this.wrap.r = def.wrapR;
 
-    JSPrivateAttributes.set(this, {
-      data: new Array(6)
-    });
+    JSPrivateAttributes.set(this, { data: new Array(6) });
 
     const data = self(this).data;
-    for (let i = 0; i < 6; ++i) { data[i] = new TextureData(null, 0, 0); }
+    for (let i = 0; i < 6; ++i) {
+      data[i] = new TextureData(this, null, 0, 0);
+    }
 
     this.update(def.faces, def.width, def.height);
-    this.updateMipmaps(mipmaps);
+    this.updateMipmaps(def.mipmaps);
   }
 
   update(faces, width, height) {
     const data = self(this).data;
     for (let i = 0; i < 6; ++i) {
-      data[i].buffer = faces[i]
+      data[i].buffer = faces[i];
       data[i].width = width;
       data[i].height = height;
     }
@@ -60,10 +61,4 @@ export class TextureCube extends AbstractTexture {
   get data() {
     return self(this).data;
   }
-
 }
-
-const DEFAULT_DEFINITION = {
-  faces: null,
-  wrapR: CONSTANTS.WRAPPING.CLAMP_TO_EDGE
-};

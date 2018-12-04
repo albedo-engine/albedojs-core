@@ -172,7 +172,7 @@ export const ATTACHMENTS_INFO = {
 };
 
 const fillConstantsMap = (map) => {
-  for (let k in map) map[k] = gl[k];
+  for (const k in map) map[k] = gl[k];
 };
 
 const gl = WebGL2RenderingContext;
