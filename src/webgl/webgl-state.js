@@ -1,12 +1,10 @@
 export class WebGLState {
 
-  constructor() {
-    this.boundFB_ = null;
-    this.activeTextures_ = null;
-  }
-
-  bindFramebuffer(fb, gl) {
-    gl.getParameter(gl.MAX_TEXTURE_SIZE)
+  constructor(maxUnits) {
+    this.program = null;
+    this.framebuffer = null;
+    this.textures = new Array(maxUnits);
+    this.unit = null;
   }
 
 }

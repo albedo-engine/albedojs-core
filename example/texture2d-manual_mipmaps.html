@@ -24,6 +24,12 @@
 
 			precision highp float;
 
+      struct Test {
+        mat4x4 worldMatrix;
+        float alpha;
+      };
+      uniform Test uData[4];
+
       in vec3 position;
       in vec2 uv;
 
@@ -39,19 +45,15 @@
     const fragmentShader = `#version 300 es
 
 			precision highp float;
-			precision highp sampler3D;
 
       in vec2 vUv;
       out vec4 FragColor;
       
-      uniform sampler3D uTexture;
-      uniform float uSlice;
+      uniform sampler2D uTexture;
 
 			void main()
 			{
-        vec3 uv = vec3(vUv, uSlice);
-        float val = texture(uTexture, uv).r;
-				FragColor = vec4(vec3(val), 1.0);
+				FragColor = vec4(texture(uTexture, vUv).rgb, 1.0);
 			}
 			`;
 
@@ -82,53 +84,20 @@
       .vertexAttrib({ vbo: verticesVBO })
       .vertexAttrib({ vbo: uvVBO, location: 1 });
 
-    let volumeData = null;
-
-    var req = new XMLHttpRequest();
-    req.open("GET", "assets/textures/volume.raw", true);
-    req.responseType = "arraybuffer";
-    req.onload = (oEvent) => {
-      if (!req.response) return;      
-      let byteArray = new Int8Array(req.response);
-      byteArray.reverse();
-      byteArray = new Int16Array(byteArray);
-      volumeData = new Float32Array(byteArray.length);
-
-      let min = Number.POSITIVE_INFINITY;
-      let max = Number.NEGATIVE_INFINITY;
-      for (var i = 0; i < byteArray.byteLength; ++i) {
-        const v = byteArray[i];
-        min = (min > v) ? v : min;
-        max = (max < v) ? v : max;
-      }
-
-      for (var i = 0; i < byteArray.byteLength; ++i) {
-        volumeData[i] = (byteArray[i] - min) / (max - min);
-      }
+    const image = new Image();
+    image.onload = function(data) {
+      program.uniforms.uTexture = new Albedo.Texture2D({buffer: image});
       init();
     };
-    req.send(null);
+    image.src = './assets/textures/cat.jpg';
 
     function init() {
-      program.uniforms.uTexture = new Albedo.Texture3D({
-        buffer: volumeData,
-        width: 256,
-        height: 256,
-        depth: 109,
-      });
-      program.uniforms.uTexture.type = Albedo.CONSTANTS.TYPES.FLOAT;
-      program.uniforms.uTexture.internalFormat = Albedo.CONSTANTS.INTERNAL_FORMAT.R16F;
-      program.uniforms.uTexture.format = Albedo.CONSTANTS.FORMAT.RED;
-      
-      program.uniforms.uSlice = 0.001;
       render();
     }
 
     function render() {
       context.draw(program, vao);
       window.requestAnimationFrame(render);
-
-      program.uniforms.uSlice += 0.001;
     }
   </script>
 </body>

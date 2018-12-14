@@ -3,36 +3,53 @@ import { AbstractTexture } from './abstract-texture';
 import { TextureData } from './texture-data';
 
 const JSPrivateAttributes = new WeakMap();
-const self = (key) => {
-  return JSPrivateAttributes.get(key);
+const self = key => { return JSPrivateAttributes.get(key); };
+
+const DEFAULT_DEFINITION = {
+  faces: null,
+  wrapR: CONSTANTS.WRAPPING.CLAMP_TO_EDGE
 };
 
 export class TextureCube extends AbstractTexture {
 
-  static get isTextureCube() {
-    return true;
-  }
+  static get isTextureCube() { return true; }
 
   constructor(definition) {
-    // TODO: support instanciation via data only.
-    const def = Object.assign(DEFAULT_DEFINITION, definition);
+    const def = Object.assign({}, DEFAULT_DEFINITION, definition);
     super(def);
 
     this.wrap.r = def.wrapR;
 
-    JSPrivateAttributes.set(this, {
-      data: new Array(6)
-    });
+    JSPrivateAttributes.set(this, { data: new Array(6) });
 
-    this.init(def.faces, def.width, def.height);
+    const data = self(this).data;
+    for (let i = 0; i < 6; ++i) {
+      data[i] = new TextureData(this, null, 0, 0);
+    }
+
+    this.update(def.faces, def.width, def.height);
+    this.updateMipmaps(def.mipmaps);
   }
 
-  init(faces, width, height) {
-    // TODO: should we check for errors?
+  update(faces, width, height) {
     const data = self(this).data;
-    for (let i = 0; i < faces.length; ++i) {
-      data[i] = new TextureData(faces[i], width, height);
+    for (let i = 0; i < 6; ++i) {
+      data[i].buffer = faces[i];
+      data[i].width = width;
+      data[i].height = height;
     }
+  }
+
+  updateMipmaps(faces) {
+    if (!Array.isArray(faces) || !faces.length) return;
+
+    const mipmaps = new Array(6);
+    for (let i = 0; i < 6; ++i) {
+      const mips = faces[i];
+      mipmaps[i] = super.updateMipmaps(mips);
+    }
+
+    self(this).mipmaps = mipmaps;
   }
 
   // TODO!
@@ -44,10 +61,4 @@ export class TextureCube extends AbstractTexture {
   get data() {
     return self(this).data;
   }
-
 }
-
-const DEFAULT_DEFINITION = {
-  faces: null,
-  wrapR: CONSTANTS.WRAPPING.CLAMP_TO_EDGE
-};

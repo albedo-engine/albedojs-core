@@ -1,16 +1,10 @@
-const JSPrivateAttributes = new WeakMap();
-const self = (key) => { return JSPrivateAttributes.get(key); };
-
 export class WebGLParameters {
 
-  constructor() {
-    JSPrivateAttributes.set(this, {
-      maxTextureSize: 0
+  static fetch(gl) {
+    return Object.freeze({
+      maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+      maxTextureUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
     });
-  }
-
-  requestDefaultParams_(gl) {
-    self(this).maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-  }
+  } 
 
 }

@@ -4,6 +4,13 @@ import { TextureData } from './texture-data';
 const JSPrivateAttributes = new WeakMap();
 const self = (key) => { return JSPrivateAttributes.get(key); };
 
+const DEFAULT_DEFINITION = {
+  buffer: null,
+  mipmaps: null,
+  width: 0,
+  height: 0
+};
+
 export class Texture2D extends AbstractTexture {
 
   static get isTexture2D() {
@@ -11,19 +18,26 @@ export class Texture2D extends AbstractTexture {
   }
 
   constructor(definition) {
-    const def = definition || {};
+    const def = Object.assign({}, DEFAULT_DEFINITION, definition);
     super(def);
 
     JSPrivateAttributes.set(this, {
-      data: null
+      data: new TextureData(this, null, 0, 0),
+      mipmaps: null
     });
 
-    this.init(def.buffer, def.width, def.height);
+    this.update(def.buffer, def.width, def.height);
+    this.updateMipmaps(def.mipmaps);
   }
 
-  init(buffer, width, height) {
-    self(this).data = new TextureData(buffer, width, height);
-    this.dirty = true;
+  update(buffer, width, height) {
+    this.data.buffer = buffer
+    this.data.width = width;
+    this.data.height = height;
+  }
+
+  updateMipmaps(mipmaps) {
+    self(this).mipmaps = super.updateMipmaps(mipmaps);
   }
 
   // TODO!
@@ -33,6 +47,10 @@ export class Texture2D extends AbstractTexture {
 
   get data() {
     return self(this).data;
+  }
+
+  get mipmaps() {
+    return self(this).mipmaps;
   }
 
 }
