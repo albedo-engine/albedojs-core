@@ -13,11 +13,11 @@
 
 ## Texture
 
-* [ ] Add mipmapping
-* [ ] Add support for texture level
+* [X] Add mipmapping
+* [X] Add support for texture level
 * [X] Add texNSubImage (via dirty flag)
 * [ ] Add compressed texture support
-* [ ] Texture3D : find CT scan sample
+* [ ] How to update the texturee unit?
 
 ## Framebuffer
 
@@ -37,3 +37,8 @@
 
 * [X] Sends all type of uniforms
 * [ ] Checks for UBO
+
+## Examples
+
+* [ ] Manual mipmapping
+* [ ] Texture3D : find CT scan sample
