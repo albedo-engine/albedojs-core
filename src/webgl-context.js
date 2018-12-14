@@ -6,8 +6,9 @@ const self = (key) => { return JSPrivateAttributes.get(key); };
 export class WebGLContext {
 
   constructor(options) {
-    if (!options.canvas)
+    if (!options.canvas) {
       throw new Error(`Renderer.ctor(): ${ERROR.MISSING_CANVAS}`);
+    }
 
     const contextOptions = {
       alpha: false,
@@ -36,7 +37,7 @@ export class WebGLContext {
       internals: new WebGLContextInternals(gl)
     });
 
-    //self(this).glParameters.requestDefaultParams_(gl);
+    // self(this).glParameters.requestDefaultParams_(gl);
   }
 
   compile(program) {
@@ -44,7 +45,7 @@ export class WebGLContext {
   }
 
   initFramebuffer(fb) {
-    //self(this).internals.compile(program);
+    // self(this).internals.compile(program);
   }
 
   bindFramebuffer(fb, read = false) {
@@ -54,7 +55,7 @@ export class WebGLContext {
   initVertexBufferObject(vbo) {
     self(this).internals.initVertexBufferObject(vbo);
   }
-  
+
   initVertexArrayObject(vao) {
     self(this).internals.initVertexArrayObject(vao);
   }
@@ -63,7 +64,7 @@ export class WebGLContext {
     self(this).internals.draw(program, vao);
   }
 
-  readPixels(x, y, w, h, ) {}
+  readPixels(x, y, w, h) {}
 
   clear() {}
 
@@ -83,9 +84,4 @@ const DEFAULT_NAME = `Albedo.WebGLContext`;
 
 const ERROR = {
   MISSING_CANVAS: `no canvas provided.`
-};
-
-const WARN = {
-  SHADER_COMPILE: `compilation failed!`,
-  PROGRAM_LINK: `shaders linking failed!`
 };

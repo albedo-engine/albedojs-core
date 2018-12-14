@@ -1,0 +1,5 @@
+describe('WebGLUniformsData', () => {
+  it('success', () => {
+
+  });
+});

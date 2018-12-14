@@ -30,8 +30,8 @@ export const linkProgram = (vertexShader, fragmentShader, gl) => {
 
 export const getFormattedCode = (source) => {
   const split = source.split(`\n`);
-  for (let i = 0; i < split.length; ++i)
+  for (let i = 0; i < split.length; ++i) {
     split[i] = `${i + 1}:${split[i]}`;
-
+  }
   return split.join(`\n`);
 };

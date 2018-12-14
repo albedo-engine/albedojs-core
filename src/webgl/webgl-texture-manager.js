@@ -42,8 +42,9 @@ export class WebGLTextureManager {
     gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, texture.filtering.mag);
     gl.texParameteri(target, gl.TEXTURE_WRAP_S, texture.wrap.s);
     gl.texParameteri(target, gl.TEXTURE_WRAP_T, texture.wrap.t);
-    if (target === gl.TEXTURE_3D || target === gl.TEXTURE_CUBE_MAP)
+    if (target === gl.TEXTURE_3D || target === gl.TEXTURE_CUBE_MAP) {
       gl.texParameteri(target, gl.TEXTURE_WRAP_R, texture.wrap.r);
+    }
   }
 
   getOrCreate(texture, gl) {

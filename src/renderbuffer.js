@@ -8,7 +8,7 @@ export class Renderbuffer {
 
   constructor(options) {
     const opts = Object.assign({}, DEFAULT_OPTIONS, options);
-    
+
     this.internalFormat = opts.internalFormat;
     this.width = opts.width;
     this.height = opts.height;

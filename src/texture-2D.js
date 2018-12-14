@@ -31,7 +31,7 @@ export class Texture2D extends AbstractTexture {
   }
 
   update(buffer, width, height) {
-    this.data.buffer = buffer
+    this.data.buffer = buffer;
     this.data.width = width;
     this.data.height = height;
   }

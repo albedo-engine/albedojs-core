@@ -5,6 +5,6 @@ export class WebGLParameters {
       maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
       maxTextureUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
     });
-  } 
+  }
 
 }

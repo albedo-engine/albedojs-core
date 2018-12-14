@@ -13,6 +13,7 @@ import { WebGLContext } from 'webgl-context';
 export {
   Framebuffer,
   Program,
+  Renderbuffer,
   Texture2D,
   Texture3D,
   TextureCube,

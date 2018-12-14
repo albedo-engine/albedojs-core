@@ -3,7 +3,7 @@ import { AbstractTexture } from './abstract-texture';
 import { TextureData } from './texture-data';
 
 const JSPrivateAttributes = new WeakMap();
-const self = key => { return JSPrivateAttributes.get(key); };
+const self = (key) => { return JSPrivateAttributes.get(key); };
 
 const DEFAULT_DEFINITION = {
   faces: null,
@@ -61,4 +61,5 @@ export class TextureCube extends AbstractTexture {
   get data() {
     return self(this).data;
   }
+
 }
