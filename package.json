@@ -47,8 +47,8 @@
     "dev": "parallelshell \"serve --listen 8080\" \"npm run build-dev\"",
     "build": "rollup -c config/prod.config.js",
     "build-dev": "rollup -c config/dev.config.js -w",
-    "lint": "eslint src",
-    "test-unit": "karma start test/karma.conf.js",
-    "test-integration": "echo running..."
+    "lint": "eslint src test",
+    "test-unit": "karma start test/karma.conf.js --entry=unit",
+    "test-integration": "karma start test/karma.conf.js --entry=integration"
   }
 }

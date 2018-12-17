@@ -29,13 +29,15 @@ before_install:
 install:
   - NODE_ENV="" npm install
 
+branches:
+  only: 
+    - master
+    - develop
+
 stages:
   - lint
-    if: type = pull_request OR branch = master OR branch = develop
   - test-unit
-    if: type = pull_request OR branch = master OR branch = develop
   - integration
-    if: type = pull_request OR branch = master OR branch = develop
 
 jobs:
   include:

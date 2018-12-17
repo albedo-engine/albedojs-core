@@ -2,9 +2,7 @@ const path = require('path');
 const rollupConfig = require('../config/test.config');
 
 /* /////////////////////////////////////////////////////////////////////////////
-//
-//                              CONFIGURATION
-//
+//                              CONFIGURATION                                 //
 ///////////////////////////////////////////////////////////////////////////// */
 
 const BROWSERS = {};
@@ -12,9 +10,7 @@ const BROWSERS = {};
 const COLORS = true;
 
 /* /////////////////////////////////////////////////////////////////////////////
-//
-//                              KARMA
-//
+//                              KARMA                                         //
 ///////////////////////////////////////////////////////////////////////////// */
 
 const PATHS = {
@@ -30,24 +26,24 @@ if (production) {
   browser = 'ChromeHeadless';
 }
 
-module.exports = function(config) {
-  config.set({
+module.exports = function(karmaConfig) {
+  const entryFolder = karmaConfig.entry;
+  const entryFile = `${entryFolder}/index.js`;
+  const outputFile = `${entryFolder}.xml`;
 
+  const config = {
     browsers: [ browser ],
 
     frameworks: [ 'mocha', 'chai' ],
 
     files: [
-      /**
-        * Make sure to disable Karma’s file watcher
-        * because the preprocessor will use its own.
-        */
-      { pattern: 'unit/index.js', watched: false }
+      {
+        pattern: entryFile,
+        watched: false
+      }
     ],
 
-    preprocessors: {
-      'unit/index.js': [ 'rollup' ]
-    },
+    preprocessors: {},
 
     singleRun: production,
 
@@ -58,14 +54,17 @@ module.exports = function(config) {
 
     // the default configuration
     junitReporter: {
-      outputDir: `${PATHS.Dist}/test`,
-      outputFile: 'unit.xml',
+      outputDir: path.resolve(PATHS.Dist, 'test'),
+      outputFile: outputFile,
       useBrowserName: false
     },
 
     rollupPreprocessor: rollupConfig,
 
     colors: COLORS
+  };
 
-  });
+  config.preprocessors[entryFile] = [ 'rollup' ];
+
+  karmaConfig.set(config);
 };
