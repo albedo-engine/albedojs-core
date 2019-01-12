@@ -11,21 +11,6 @@
     "rendering",
     "webgl"
   ],
-  "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0",
-    "eslint": "^5.9.0",
-    "parallelshell": "^3.0.2",
-    "path": "^0.12.7",
-    "rollup": "^0.59.4",
-    "rollup-plugin-babel": "^3.0.7",
-    "rollup-plugin-includepaths": "^0.2.3",
-    "rollup-plugin-uglify": "^4.0.0",
-    "serve": "^7.1.5",
-    "tap-spec": "^5.0.0",
-    "tape": "^4.9.0",
-    "uglify-es": "^3.3.9"
-  },
   "files": [
     "package.json",
     "LICENSE",
@@ -34,12 +19,36 @@
     "dist/albedo.min.js",
     "src"
   ],
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "chai": "^4.2.0",
+    "eslint": "^4.19.1",
+    "eslint-config-google": "^0.11.0",
+    "karma": "^3.1.3",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-junit-reporter": "^1.2.0",
+    "karma-mocha": "^1.3.0",
+    "karma-rollup-preprocessor": "^6.1.1",
+    "mocha": "^5.2.0",
+    "parallelshell": "^3.0.2",
+    "path": "^0.12.7",
+    "prettier": "^1.14.1",
+    "puppeteer": "^1.11.0",
+    "rollup": "^0.59.4",
+    "rollup-plugin-babel": "^3.0.7",
+    "rollup-plugin-includepaths": "^0.2.3",
+    "rollup-plugin-uglify": "^4.0.0",
+    "serve": "^7.1.5",
+    "uglify-es": "^3.3.9"
+  },
   "scripts": {
     "dev": "parallelshell \"serve --listen 8080\" \"npm run build-dev\"",
-    "build": "npm run lint && npm run test && rollup -c config/prod.config.js",
+    "build": "rollup -c config/prod.config.js",
     "build-dev": "rollup -c config/dev.config.js -w",
-    "lint": "eslint src",
-    "build-test": "rollup -c config/test.config.js ",
-    "test": "npm run build-test && tape dist/albedo.testlib.js | tap-spec"
+    "lint": "eslint src test",
+    "test-unit": "karma start test/karma.conf.js --entry=unit",
+    "test-integration": "karma start test/karma.conf.js --entry=integration"
   }
 }

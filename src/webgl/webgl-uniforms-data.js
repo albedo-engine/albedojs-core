@@ -1,4 +1,5 @@
 /* eslint camelcase: 0 */
+/* eslint max-len: 0 */
 import { GLSLTYPES } from './constants';
 import { ARRAY_TYPE } from 'utils/type';
 
@@ -19,9 +20,9 @@ export class WebGLUniformsData {
   }
 
   update(uniforms, gl) {
-    for (let u in this.list) {
+    for (const u in this.list) {
       const uniform = uniforms[u];
-      if (uniform) this.list[u].upload(uniform, gl, this.textureManager);
+      if (uniform) { this.list[u].upload(uniform, gl, this.textureManager); };
     }
   }
 
@@ -70,8 +71,9 @@ const tokenize = (name) => {
     if (dot === bracketEnd + 1) {
       tokens.push({ name: decay, type: StructUniform });
       i++;
-    } else
+    } else {
       tokens.push({ name: decay, type: SingleUniform });
+    }
   }
   return tokens;
 };
@@ -117,7 +119,7 @@ class StructUniform extends Uniform {
   }
 
   upload(uniform, gl) {
-    for (let i in uniform) this.list[i].upload(uniform[i], gl);
+    for (const i in uniform) this.list[i].upload(uniform[i], gl);
   }
 
 }
@@ -149,12 +151,13 @@ class SingleUniform extends Uniform {
     this.funcName = GLSLTYPES_TO_UNIFORM_FUNC[type];
 
     const isSampler = IS_SAMPLER[type];
-    if (isSampler)
+    if (isSampler) {
       this.upload = this.uploadTexture;
-    else if (this.components === 1)
+    } else if (this.components === 1) {
       this.upload = this.uploadSingle;
-    else
+    } else {
       this.upload = this.uploadMatrix;
+    }
   }
 
   uploadSingle(value, gl) {

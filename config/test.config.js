@@ -1,6 +1,5 @@
-import babel from 'rollup-plugin-babel';
-import includePaths from 'rollup-plugin-includepaths';
-import path from 'path';
+const includePaths = require('rollup-plugin-includepaths');
+const path = require('path');
 
 const ROOT = path.resolve(__dirname, `..`);
 const PATH = {
@@ -13,19 +12,12 @@ const LIBRARY_NAME = `AlbedoTest`;
 const INPUT_FILE = `${PATH.TEST}/index.js`;
 const OUTPUT_FILE = `${PATH.DIST}/albedo.testlib.js`;
 
-export default {
-  input: INPUT_FILE,
+module.exports = {
   output: {
-    file: OUTPUT_FILE,
-    format: `es`,
-    name: LIBRARY_NAME
+    format: 'iife',
+    name: 'AlbedoTests'
   },
   plugins: [
     includePaths({ paths: [ `src`, `test` ] }),
-    babel({
-      exclude: `node_modules/**`,
-      babelrc: false,
-      presets: [ [ `env`, { modules: false } ] ]
-    })
   ]
 };

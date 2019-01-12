@@ -13,6 +13,7 @@ const DEFAULT_DEFINITION = {
 };
 
 export class AbstractTexture {
+
   static get isTexture() {
     return true;
   }
@@ -56,4 +57,5 @@ export class AbstractTexture {
   clone() {
     throw new Error('Not implemented yet.');
   }
+
 }

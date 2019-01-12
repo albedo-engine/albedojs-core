@@ -1,0 +1,1 @@
+import './wegbl-uniforms.test';

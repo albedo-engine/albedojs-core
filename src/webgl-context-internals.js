@@ -1,4 +1,9 @@
-import { compileShader, getFormattedCode, linkProgram } from 'webgl/webgl-shader';
+import {
+  compileShader,
+  getFormattedCode,
+  linkProgram
+} from 'webgl/webgl-shader';
+
 import { Cache } from 'utils/cache';
 import { WebGLParameters } from 'webgl/webgl-parameters';
 import { WebGLProgramData } from 'webgl/webgl-program-data';
@@ -24,7 +29,7 @@ export class WebGLContextInternals {
   }
 
   initTexture(texture) {
-    
+
   }
 
   initRenderbuffer(rb) {
@@ -50,15 +55,21 @@ export class WebGLContextInternals {
 
     this.gl.bindFramebuffer(gl.FRAMEBUFFER, fbInfo.glObject);
 
-    for (let point in fb.attachments) {
+    for (const point in fb.attachments) {
       const attachment = fb.attachments[point];
 
       if (attachment.isRenderbuffer) {
         const rbInfo = this.initRenderbuffer(attachment);
-        this.gl.framebufferRenderbuffer(gl.FRAMEBUFFER, point, this.gl.RENDERBUFFER, rbInfo.glObject);
+        this.gl.framebufferRenderbuffer(
+          gl.FRAMEBUFFER, point, this.gl.RENDERBUFFER, rbInfo.glObject
+        );
       } else {
-        const glTexture = texManager.getOrCreate(fb.attachments[point], this.gl);
-        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, point, this.gl.TEXTURE_2D, glTexture, 0);
+        const glTexture = texManager.getOrCreate(
+          fb.attachments[point], this.gl
+        );
+        this.gl.framebufferTexture2D(
+          this.gl.FRAMEBUFFER, point, this.gl.TEXTURE_2D, glTexture, 0
+        );
       }
 
     }
@@ -84,9 +95,11 @@ export class WebGLContextInternals {
 
     const vxSrc = program.vertexSource;
     const fragSrc = program.fragmentSource;
-    
+
     const vertexShader = compileShader(vxSrc, this.gl.VERTEX_SHADER, this.gl);
-    const fragmentShader = compileShader(fragSrc, this.gl.FRAGMENT_SHADER, this.gl);
+    const fragmentShader = compileShader(
+      fragSrc, this.gl.FRAGMENT_SHADER, this.gl
+    );
 
     const vertexFailed = !(vertexShader instanceof WebGLShader);
     const fragmentFailed = !(fragmentShader instanceof WebGLShader);
@@ -131,7 +144,7 @@ export class WebGLContextInternals {
     const glObject = this.gl.createVertexArray();
     this.gl.bindVertexArray(glObject);
 
-    for (let attrib of vao.vertexAttributes) {
+    for (const attrib of vao.vertexAttributes) {
       const vbo = attrib.vbo;
       const vboInfo = this.initVertexBufferObject(vbo);
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vboInfo.glObject);
@@ -163,7 +176,7 @@ export class WebGLContextInternals {
 
   draw(program, vao) {
     if (!program || !vao) return;
-    
+
     this.compile(program);
 
     // TODO: Do not reset texture units like that.

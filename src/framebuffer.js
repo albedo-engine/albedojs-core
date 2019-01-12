@@ -4,9 +4,7 @@ const self = (key) => { return JSPrivateAttributes.get(key); };
 export class Framebuffer {
 
   constructor() {
-    JSPrivateAttributes.set(this, {
-      attachments: {}
-    });
+    JSPrivateAttributes.set(this, { attachments: {} });
 
     this.dirty = true;
   }

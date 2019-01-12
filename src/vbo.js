@@ -4,10 +4,12 @@ import { TYPES } from './constants';
 export class VBO {
 
   constructor(options) {
-    if (!options)
+    if (!options) {
       throw new TypeError(`${ERROR.HEAD}.ctor(): ${ERROR.MISSING_DATA}`);
-    if (options.data && !isArrayBuffer(options.data))
+    }
+    if (options.data && !isArrayBuffer(options.data)) {
       throw new TypeError(`${ERROR.HEAD}.ctor(): ${ERROR.NOT_AN_ARRAYBUFFER}`);
+    }
 
     this.data = options.data || options;
     this.type = options.type || this._dataType();
@@ -32,9 +34,12 @@ export class VBO {
 }
 
 const ERROR = {
-  HEAD: `Buffer`,
-  MISSING_DATA: `the provided arguments does not contain a valid 'data' ArrayBuffer.`,
-  NOT_AN_ARRAYBUFFER: `the provided 'data' buffer is not an ArrayBuffer.`,
-  WRONG_ASSIGN: `assignation of a non ArrayBuffer to the 'data' attribute.`,
-  TYPE_NOT_FOUND: `GL type can not be deduced from the given ArrayBuffer.`
+  HEAD: 'Buffer',
+
+  MISSING_DATA: 'the provided arguments does not contain '
+                + 'a valid data ArrayBuffer.',
+
+  NOT_AN_ARRAYBUFFER: 'the provided data buffer is not an ArrayBuffer.',
+  WRONG_ASSIGN: 'assignation of a non ArrayBuffer to the data attribute.',
+  TYPE_NOT_FOUND: 'GL type can not be deduced from the given ArrayBuffer.'
 };

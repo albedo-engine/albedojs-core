@@ -1,8 +1,9 @@
 language: node_js
-
-os: linux
 sudo: required
 dist: trusty
+node_js:
+  - 10
+cache: npm
 
 addons:
   apt:
@@ -13,10 +14,38 @@ addons:
     - libglapi-mesa
     - libosmesa6
 
-node_js:
-  - '6'
+git:
+  depth: false
+  quiet: true
 
-before_script:
+env:
+  - NODE_ENV=production
+
+before_install:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   - sleep 3
+
+install:
+  - NODE_ENV="" npm install
+
+branches:
+  only: 
+    - master
+    - develop
+
+stages:
+  - lint
+  - test-unit
+  - integration
+
+jobs:
+  include:
+    - stage: "lint"
+      script: npm run lint
+    - stage: "test-unit"
+      script: npm run test-unit
+    - stage: "integration"
+      script:
+        - npm run build
+        - npm run test-integration
