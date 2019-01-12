@@ -11,6 +11,7 @@
     "rendering",
     "webgl"
   ],
+  "module": "dist/albedo.min.js",
   "files": [
     "package.json",
     "LICENSE",
@@ -23,6 +24,7 @@
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
+    "concurrently": "^4.1.0",
     "eslint": "^4.19.1",
     "eslint-config-google": "^0.11.0",
     "karma": "^3.1.3",
@@ -32,23 +34,28 @@
     "karma-mocha": "^1.3.0",
     "karma-rollup-preprocessor": "^6.1.1",
     "mocha": "^5.2.0",
-    "parallelshell": "^3.0.2",
     "path": "^0.12.7",
     "prettier": "^1.14.1",
     "puppeteer": "^1.11.0",
     "rollup": "^0.59.4",
     "rollup-plugin-babel": "^3.0.7",
     "rollup-plugin-includepaths": "^0.2.3",
+    "rollup-plugin-typescript2": "^0.18.1",
     "rollup-plugin-uglify": "^4.0.0",
     "serve": "^7.1.5",
+    "tslint": "^5.12.1",
+    "typescript": "^3.2.2",
     "uglify-es": "^3.3.9"
   },
   "scripts": {
-    "dev": "parallelshell \"serve --listen 8080\" \"npm run build-dev\"",
+    "dev": "concurrently \"serve --listen 8080\" \"npm run build-dev\"",
     "build": "rollup -c config/prod.config.js",
     "build-dev": "rollup -c config/dev.config.js -w",
     "lint": "eslint src test",
     "test-unit": "karma start test/karma.conf.js --entry=unit",
     "test-integration": "karma start test/karma.conf.js --entry=integration"
+  },
+  "dependencies": {
+    "global": "^4.3.2"
   }
 }
