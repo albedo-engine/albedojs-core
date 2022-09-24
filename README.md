@@ -4,7 +4,7 @@
     </a>
 </p>
 
-<h1 align="center">About this library</h1>
+<h1 align="center">About this library (Deprecated)</h1>
 
 Albedo.js is a MTI-licensed project trying to provide a fast 3D rendering framework based on WebGL2.
 
